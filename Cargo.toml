@@ -1,0 +1,5 @@
+[package]
+
+name = "bluetooth"
+version = "0.0.1"
+authors = ["Scott Talbot <s@chikachow.org>"]
