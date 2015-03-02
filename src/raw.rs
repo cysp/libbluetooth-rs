@@ -51,9 +51,9 @@ mod tests {
 		let _ = unsafe { hci_get_route(&BDADDR_LOCAL) };
 
 		if (r > 0) {
-			let d = hci_open_dev(r);
+			let d = unsafe { hci_open_dev(r) };
 			if (d > 0) {
-				hci_close_dev(d);
+				unsafe { hci_close_dev(d) };
 			}
 		}
 	}
