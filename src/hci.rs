@@ -71,7 +71,7 @@ mod tests {
 
 	#[test]
 	fn smoke() {
-		let d = try!(HciDevice::new(common::BdAddr::BDADDR_ANY));
+		let d = HciDevice::new(common::BdAddr::Any).unwrap();
 		let _ = d;
 	}
 }
