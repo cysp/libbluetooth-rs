@@ -15,7 +15,7 @@ pub struct HciError {
 
 impl std::error::Error for HciError {
     fn description(&self) -> &str {
-    	"dunno lol"
+        "error"
     }
 }
 
@@ -24,8 +24,6 @@ impl std::fmt::Display for HciError {
         self.description().fmt(f)
     }
 }
-
-
 
 
 pub struct HciDeviceHandle {
