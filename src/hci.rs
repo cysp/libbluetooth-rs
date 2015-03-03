@@ -62,3 +62,15 @@ impl Drop for HciDevice {
 	}
 
 }
+
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+
+	#[test]
+	fn smoke() {
+		let d = try!(HciDevice::new(common::BdAddr::BDADDR_ANY));
+		let _ = d;
+	}
+}
