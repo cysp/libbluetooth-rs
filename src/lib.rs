@@ -8,4 +8,4 @@ mod common;
 mod hci;
 
 pub use common::*;
-pub use hci::{HciDevice};
+pub use hci::{HciDeviceHandle};

@@ -28,13 +28,13 @@ impl std::fmt::Display for HciError {
 
 
 
-pub struct HciDevice {
+pub struct HciDeviceHandle {
 	d: libc::c_int,
 }
 
-impl HciDevice {
+impl HciDeviceHandle {
 
-	pub fn new(addr: common::BdAddr) -> Result<HciDevice, HciError> {
+	pub fn new(addr: common::BdAddr) -> Result<HciDeviceHandle, HciError> {
 		let a = addr.as_raw();
 
 		let d = unsafe { raw::hci_get_route(&a) };
@@ -47,12 +47,12 @@ impl HciDevice {
 			return Err(HciError { errno: std::os::errno() });
 		}
 
-		Ok(HciDevice { d: d })
+		Ok(HciDeviceHandle { d: d })
 	}
 
 }
 
-impl Drop for HciDevice {
+impl Drop for HciDeviceHandle {
 
 	fn drop(&mut self) {
 		let rv = unsafe { raw::hci_close_dev(self.d) };
@@ -71,7 +71,7 @@ mod tests {
 
 	#[test]
 	fn smoke() {
-		let d = HciDevice::new(common::BdAddr::Any).unwrap();
+		let d = HciDeviceHandle::new(common::BdAddr::Any).unwrap();
 		let _ = d;
 	}
 }
