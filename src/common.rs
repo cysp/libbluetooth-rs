@@ -7,6 +7,3 @@ pub enum BdAddr {
 	Local,
 	Addr(u8, u8, u8, u8, u8, u8),
 }
-
-
-pub struct Error;
