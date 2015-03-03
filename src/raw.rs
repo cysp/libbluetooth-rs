@@ -45,7 +45,20 @@ extern {
 	pub fn hci_open_dev(dev_id: libc::c_int) -> libc::c_int;
 	pub fn hci_close_dev(dd: libc::c_int) -> libc::c_int;
 
+	pub fn hci_read_local_name(dd: libc::c_int, len: libc::c_int, name: *mut libc::c_char, to: libc::c_int) -> libc::c_int;
+	// int hci_write_local_name(int dd, const char *name, int to);
+	// int hci_read_remote_name(int dd, const bdaddr_t *bdaddr, int len, char *name, int to);
+	// int hci_read_remote_name_with_clock_offset(int dd, const bdaddr_t *bdaddr, uint8_t pscan_rep_mode, uint16_t clkoffset, int len, char *name, int to);
+	// int hci_read_remote_name_cancel(int dd, const bdaddr_t *bdaddr, int to);
+	// int hci_read_remote_version(int dd, uint16_t handle, struct hci_version *ver, int to);
+	// int hci_read_remote_features(int dd, uint16_t handle, uint8_t *features, int to);
+	// int hci_read_remote_ext_features(int dd, uint16_t handle, uint8_t page, uint8_t *max_page, uint8_t *features, int to);
+	// int hci_read_clock_offset(int dd, uint16_t handle, uint16_t *clkoffset, int to);
 	pub fn hci_read_local_version(dd: libc::c_int, ver: *mut hci_version, to: libc::c_int) -> libc::c_int;
+	// int hci_read_local_commands(int dd, uint8_t *commands, int to);
+	// int hci_read_local_features(int dd, uint8_t *features, int to);
+	// int hci_read_local_ext_features(int dd, uint8_t page, uint8_t *max_page, uint8_t *features, int to);
+
 
 }
 
