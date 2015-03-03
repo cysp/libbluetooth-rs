@@ -140,14 +140,14 @@ mod tests {
 
 	#[test]
 	fn smoke() {
-		if let Ok(d) = HciDeviceHandle::new(common::BDADDR_ANY) {
+		if let Ok(d) = HciDeviceHandle::new(&common::BDADDR_ANY) {
 			let name = d.read_local_name().unwrap();
 			let _ = name;
 			let v = d.read_local_version().unwrap();
 			let _ = v;
 		}
 
-		if let Ok(d) = HciDeviceHandle::new([0,0,0,0,0,0]) {
+		if let Ok(d) = HciDeviceHandle::new(&[0,0,0,0,0,0]) {
 			let _ = d;
 		}
 	}
