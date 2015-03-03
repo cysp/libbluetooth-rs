@@ -2,10 +2,10 @@
 #![feature(libc)]
 #![feature(os)]
 
-
-mod raw;
+pub mod raw;
 mod common;
 mod hci;
 
 pub use common::*;
-pub use hci::{HciDeviceHandle};
+pub use hci::{HciDeviceHandle, HciError};
+pub use hci::{HciVersion};

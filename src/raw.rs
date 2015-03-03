@@ -27,14 +27,25 @@ impl common::BdAddr {
 }
 
 
+#[repr(C)]
+pub struct hci_version {
+	pub manufacturer: libc::uint16_t,
+	pub hci_ver: libc::uint8_t,
+	pub hci_rev: libc::uint16_t,
+	pub lmp_ver: libc::uint8_t,
+	pub lmp_subver: libc::uint16_t,
+}
+
+
 #[link(name = "bluetooth")]
 extern {
 
 	pub fn hci_get_route(bdaddr: * const bdaddr_t) -> libc::c_int;
 
-
 	pub fn hci_open_dev(dev_id: libc::c_int) -> libc::c_int;
 	pub fn hci_close_dev(dd: libc::c_int) -> libc::c_int;
+
+	pub fn hci_read_local_version(dd: libc::c_int, ver: *mut hci_version, to: libc::c_int) -> libc::c_int;
 
 }
 

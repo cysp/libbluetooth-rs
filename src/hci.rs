@@ -26,6 +26,29 @@ impl std::fmt::Display for HciError {
 }
 
 
+pub struct HciVersion {
+	raw: raw::hci_version,
+}
+
+impl HciVersion {
+	pub fn manufacturer(&self) -> u16 {
+		self.raw.manufacturer
+	}
+	pub fn hci_ver(&self) -> u8 {
+		self.raw.hci_ver
+	}
+	pub fn hci_rev(&self) -> u16 {
+		self.raw.hci_rev
+	}
+	pub fn lmp_ver(&self) -> u8 {
+		self.raw.lmp_ver
+	}
+	pub fn lmp_subver(&self) -> u16 {
+		self.raw.lmp_subver
+	}
+}
+
+
 pub struct HciDeviceHandle {
 	d: libc::c_int,
 }
@@ -46,6 +69,17 @@ impl HciDeviceHandle {
 		}
 
 		Ok(HciDeviceHandle { d: d })
+	}
+
+
+	pub fn read_local_version(&self) -> Result<HciVersion, HciError> {
+		let mut v = raw::hci_version { manufacturer: 0, hci_ver: 0, hci_rev: 0, lmp_ver: 0, lmp_subver: 0 };
+		let rv = unsafe { raw::hci_read_local_version(self.d, &mut v, 0) };
+		if rv < 0 {
+			return Err(HciError { errno: std::os::errno() });
+		}
+
+		Ok(HciVersion { raw: v })
 	}
 
 }
@@ -70,6 +104,7 @@ mod tests {
 	#[test]
 	fn smoke() {
 		let d = HciDeviceHandle::new(common::BdAddr::Any).unwrap();
-		let _ = d;
+		let v = d.read_local_version().unwrap();
+		let _ = v;
 	}
 }
