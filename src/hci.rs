@@ -67,6 +67,7 @@ impl Drop for HciDevice {
 #[cfg(test)]
 mod tests {
 	use super::*;
+	use common;
 
 	#[test]
 	fn smoke() {
