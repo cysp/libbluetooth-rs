@@ -46,7 +46,7 @@ extern {
 	pub fn hci_close_dev(dd: libc::c_int) -> libc::c_int;
 
 	pub fn hci_read_local_name(dd: libc::c_int, len: libc::c_int, name: *mut libc::c_char, to: libc::c_int) -> libc::c_int;
-	// int hci_write_local_name(int dd, const char *name, int to);
+	pub fn hci_write_local_name(dd: libc::c_int, name: *const libc::c_char, to: libc::c_int) -> libc::c_int;
 	pub fn hci_read_remote_name(dd: libc::c_int, bdaddr: *const bdaddr_t, len: libc::c_int, name: *mut libc::c_char, to: libc::c_int) -> libc::c_int;
 	// int hci_read_remote_name_with_clock_offset(int dd, const bdaddr_t *bdaddr, uint8_t pscan_rep_mode, uint16_t clkoffset, int len, char *name, int to);
 	// int hci_read_remote_name_cancel(int dd, const bdaddr_t *bdaddr, int to);

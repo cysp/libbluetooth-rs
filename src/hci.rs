@@ -86,6 +86,15 @@ impl HciDeviceHandle {
 		}
 	}
 
+	pub fn write_local_name(&self, name: &str) -> Result<(), HciError> {
+		let rv = unsafe { raw::hci_write_local_name(self.d, name.as_bytes().as_ptr() as *const libc::c_char, 0) };
+		if rv < 0 {
+			return Err(HciError { errno: std::os::errno() });
+		}
+
+		Ok(())
+	}
+
 	pub fn read_remote_name(&self, addr: common::BdAddr) -> Result<String, HciError> {
 		let a = addr.as_raw();
 		let mut name = [0 as u8; 248];
