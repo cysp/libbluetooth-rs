@@ -86,6 +86,20 @@ impl HciDeviceHandle {
 		}
 	}
 
+	pub fn read_remote_name(&self, addr: common::BdAddr) -> Result<String, HciError> {
+		let a = addr.as_raw();
+		let mut name = [0 as u8; 248];
+		let rv = unsafe { raw::hci_read_remote_name(self.d, &a, 248, &mut name as *mut _ as *mut libc::c_char, 0) };
+		if rv < 0 {
+			return Err(HciError { errno: std::os::errno() });
+		}
+
+		match String::from_utf8(name.to_owned()) {
+			Ok(name) => Ok(name),
+			Err(_) => Err(HciError { errno: 0 }),
+		}
+	}
+
 	pub fn read_local_version(&self) -> Result<HciVersion, HciError> {
 		let mut v = raw::hci_version { manufacturer: 0, hci_ver: 0, hci_rev: 0, lmp_ver: 0, lmp_subver: 0 };
 		let rv = unsafe { raw::hci_read_local_version(self.d, &mut v, 0) };
