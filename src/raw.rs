@@ -1,30 +1,15 @@
 extern crate libc;
 
-use common;
-
 
 #[repr(C, packed)]
 #[derive(Copy)]
 pub struct bdaddr_t {
-	b: [libc::uint8_t; 6],
+	pub b: [libc::uint8_t; 6],
 }
 
 pub static BDADDR_ANY: bdaddr_t = bdaddr_t { b: [0, 0, 0, 0, 0, 0] };
 pub static BDADDR_ALL: bdaddr_t = bdaddr_t { b: [0xff, 0xff, 0xff, 0xff, 0xff, 0xff] };
 pub static BDADDR_LOCAL: bdaddr_t = bdaddr_t { b: [0, 0, 0, 0xff, 0xff, 0xff] };
-
-impl common::BdAddr {
-
-	pub fn as_raw(&self) -> bdaddr_t {
-		match self {
-			&common::BdAddr::Any => BDADDR_ANY,
-			&common::BdAddr::All => BDADDR_ALL,
-			&common::BdAddr::Local => BDADDR_LOCAL,
-			&common::BdAddr::Addr(a, b, c, d, e, f) => bdaddr_t { b: [a as u8, b as u8, c as u8, d as u8, e as u8, f as u8] },
-		}
-	}
-
-}
 
 
 #[repr(C)]

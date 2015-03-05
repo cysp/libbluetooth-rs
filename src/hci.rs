@@ -56,10 +56,10 @@ pub struct HciDeviceHandle {
 
 impl HciDeviceHandle {
 
-	pub fn new(addr: common::BdAddr) -> Result<HciDeviceHandle, HciError> {
-		let a = addr.as_raw();
+	pub fn new(addr: &common::ToBdAddr) -> Result<HciDeviceHandle, HciError> {
+		let a = addr.to_bdaddr();
 
-		let d = unsafe { raw::hci_get_route(&a) };
+		let d = unsafe { raw::hci_get_route(&a.to_raw()) };
 		if d < 0 {
 			return Err(HciError { errno: std::os::errno() });
 		}
@@ -105,10 +105,10 @@ impl HciDeviceHandle {
 		Ok(HciVersion { raw: v })
 	}
 
-	pub fn read_remote_name(&self, addr: common::BdAddr) -> Result<String, HciError> {
-		let a = addr.as_raw();
+	pub fn read_remote_name(&self, addr: &common::ToBdAddr) -> Result<String, HciError> {
+		let a = addr.to_bdaddr();
 		let mut name = [0 as u8; 248];
-		let rv = unsafe { raw::hci_read_remote_name(self.d, &a, 248, &mut name as *mut _ as *mut libc::c_char, 0) };
+		let rv = unsafe { raw::hci_read_remote_name(self.d, &a.to_raw(), 248, &mut name as *mut _ as *mut libc::c_char, 0) };
 		if rv < 0 {
 			return Err(HciError { errno: std::os::errno() });
 		}
@@ -140,11 +140,15 @@ mod tests {
 
 	#[test]
 	fn smoke() {
-		if let Ok(d) = HciDeviceHandle::new(common::BdAddr::Any) {
+		if let Ok(d) = HciDeviceHandle::new(common::BDADDR_ANY) {
 			let name = d.read_local_name().unwrap();
 			let _ = name;
 			let v = d.read_local_version().unwrap();
 			let _ = v;
+		}
+
+		if let Ok(d) = HciDeviceHandle::new([0,0,0,0,0,0]) {
+			let _ = d;
 		}
 	}
 }
