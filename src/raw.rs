@@ -2,7 +2,7 @@ extern crate libc;
 
 
 #[repr(C, packed)]
-#[derive(Copy)]
+#[derive(Copy,Debug)]
 pub struct bdaddr_t {
 	pub b: [libc::uint8_t; 6],
 }
@@ -13,6 +13,7 @@ pub static BDADDR_LOCAL: bdaddr_t = bdaddr_t { b: [0, 0, 0, 0xff, 0xff, 0xff] };
 
 
 #[repr(C)]
+#[derive(Debug)]
 pub struct hci_version {
 	pub manufacturer: libc::uint16_t,
 	pub hci_ver: libc::uint8_t,

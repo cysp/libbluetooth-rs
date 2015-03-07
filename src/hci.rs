@@ -27,6 +27,7 @@ impl std::fmt::Display for HciError {
 }
 
 
+#[derive(Debug)]
 pub struct HciVersion {
 	raw: raw::hci_version,
 }
