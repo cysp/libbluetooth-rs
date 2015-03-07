@@ -14,9 +14,7 @@ impl std::marker::Sized for BdAddr {}
 
 impl BdAddr {
 	pub fn to_raw(&self) -> raw::bdaddr_t {
-		raw::bdaddr_t {
-			b: self.a
-		}
+		raw::bdaddr_t(self.a)
 	}
 }
 
