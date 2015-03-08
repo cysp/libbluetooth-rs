@@ -91,7 +91,7 @@ impl HciDeviceHandle {
 
 	pub fn read_local_name(&self) -> Result<String, HciError> {
 		let mut name = [0 as u8; 248];
-		let rv = unsafe { raw::hci_read_local_name(self.d, 248, &mut name as *mut _ as *mut libc::c_char, 0) };
+		let rv = unsafe { raw::hci_read_local_name(self.d, 248, &mut name as *mut _ as *mut libc::c_char, 1000) };
 		if rv < 0 {
 			return Err(HciError { errno: std::os::errno() });
 		}
@@ -103,7 +103,7 @@ impl HciDeviceHandle {
 	}
 
 	pub fn write_local_name(&self, name: &str) -> Result<(), HciError> {
-		let rv = unsafe { raw::hci_write_local_name(self.d, name.as_bytes().as_ptr() as *const libc::c_char, 0) };
+		let rv = unsafe { raw::hci_write_local_name(self.d, name.as_bytes().as_ptr() as *const libc::c_char, 1000) };
 		if rv < 0 {
 			return Err(HciError { errno: std::os::errno() });
 		}
@@ -113,7 +113,7 @@ impl HciDeviceHandle {
 
 	pub fn read_local_version(&self) -> Result<HciVersion, HciError> {
 		let mut v = raw::hci_version { manufacturer: 0, hci_ver: 0, hci_rev: 0, lmp_ver: 0, lmp_subver: 0 };
-		let rv = unsafe { raw::hci_read_local_version(self.d, &mut v, 0) };
+		let rv = unsafe { raw::hci_read_local_version(self.d, &mut v, 1000) };
 		if rv < 0 {
 			return Err(HciError { errno: std::os::errno() });
 		}
@@ -124,7 +124,7 @@ impl HciDeviceHandle {
 	pub fn read_remote_name(&self, addr: &common::ToBdAddr) -> Result<String, HciError> {
 		let a = addr.to_bdaddr();
 		let mut name = [0 as u8; 248];
-		let rv = unsafe { raw::hci_read_remote_name(self.d, &a.to_raw(), 248, &mut name as *mut _ as *mut libc::c_char, 0) };
+		let rv = unsafe { raw::hci_read_remote_name(self.d, &a.to_raw(), 248, &mut name as *mut _ as *mut libc::c_char, 1000) };
 		if rv < 0 {
 			return Err(HciError { errno: std::os::errno() });
 		}
