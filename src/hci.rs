@@ -27,7 +27,6 @@ impl std::fmt::Display for HciError {
 }
 
 
-#[derive(Debug)]
 pub struct HciVersion {
 	raw: raw::hci_version,
 }
@@ -39,14 +38,30 @@ impl HciVersion {
 	pub fn hci_ver(&self) -> u8 {
 		self.raw.hci_ver
 	}
+	pub fn hci_ver_str(&self) -> Option<&'static str> {
+		self.raw.hci_ver_str()
+	}
 	pub fn hci_rev(&self) -> u16 {
 		self.raw.hci_rev
 	}
 	pub fn lmp_ver(&self) -> u8 {
 		self.raw.lmp_ver
 	}
+	pub fn lmp_ver_str(&self) -> Option<&'static str> {
+		self.raw.lmp_ver_str()
+	}
 	pub fn lmp_subver(&self) -> u16 {
 		self.raw.lmp_subver
+	}
+}
+
+impl std::fmt::Debug for HciVersion {
+	fn fmt(&self, formatter: &mut std::fmt::Formatter) -> Result<(), std::fmt::Error> {
+		write!(formatter, "HciVersion {{ manufacturer: {}, hci_ver: {}, hci_rev: {}, lmp_ver: {}, lmp_subver: {} }}",
+			self.manufacturer(),
+			self.hci_ver_str().unwrap_or(&format!("unknown({})", self.hci_ver())), self.hci_rev(),
+			self.lmp_ver_str().unwrap_or(&format!("unknown({})", self.lmp_ver())), self.lmp_subver(),
+			)
 	}
 }
 

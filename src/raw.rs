@@ -1,5 +1,8 @@
 extern crate libc;
 
+use std::ffi;
+use std::str;
+
 
 #[repr(C, packed)]
 #[derive(Copy,Debug)]
@@ -11,13 +14,35 @@ pub static BDADDR_LOCAL: bdaddr_t = bdaddr_t([0, 0, 0, 0xff, 0xff, 0xff]);
 
 
 #[repr(C)]
-#[derive(Debug)]
+#[derive(Copy,Debug)]
 pub struct hci_version {
 	pub manufacturer: libc::uint16_t,
 	pub hci_ver: libc::uint8_t,
 	pub hci_rev: libc::uint16_t,
 	pub lmp_ver: libc::uint8_t,
 	pub lmp_subver: libc::uint16_t,
+}
+
+impl hci_version {
+	pub fn hci_ver_str(&self) -> Option<&'static str> {
+		let s = unsafe { hci_vertostr(self.hci_ver as libc::c_uint) };
+		if s == 0 as *const libc::c_char {
+			None
+		} else {
+			let buf: &[u8] = unsafe { ffi::CStr::from_ptr(s).to_bytes() };
+			str::from_utf8(buf).ok()
+		}
+	}
+
+	pub fn lmp_ver_str(&self) -> Option<&'static str> {
+		let s = unsafe { lmp_vertostr(self.lmp_ver as libc::c_uint) };
+		if s == 0 as *const libc::c_char {
+			None
+		} else {
+			let buf: &[u8] = unsafe { ffi::CStr::from_ptr(s).to_bytes() };
+			str::from_utf8(buf).ok()
+		}
+	}
 }
 
 
@@ -28,6 +53,10 @@ extern {
 
 	pub fn hci_open_dev(dev_id: libc::c_int) -> libc::c_int;
 	pub fn hci_close_dev(dd: libc::c_int) -> libc::c_int;
+
+	pub fn hci_vertostr(ver: libc::c_uint) -> *const libc::c_char;
+	pub fn lmp_vertostr(ver: libc::c_uint) -> *const libc::c_char;
+	pub fn hci_cmdtostr(ver: libc::c_uint) -> *const libc::c_char;
 
 	pub fn hci_read_local_name(dd: libc::c_int, len: libc::c_int, name: *mut libc::c_char, to: libc::c_int) -> libc::c_int;
 	pub fn hci_write_local_name(dd: libc::c_int, name: *const libc::c_char, to: libc::c_int) -> libc::c_int;
