@@ -1,6 +1,6 @@
 extern crate bluetooth;
 
-use bluetooth::*;
+use bluetooth::{HciDeviceHandle, BDADDR_ANY};
 
 
 fn main() {
