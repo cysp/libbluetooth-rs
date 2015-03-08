@@ -1,6 +1,8 @@
 extern crate libc;
+extern crate std;
 
 use std::ffi;
+use std::fmt;
 use std::str;
 
 
@@ -45,6 +47,27 @@ impl hci_version {
 	}
 }
 
+#[repr(C)]
+pub struct hci_commands(pub [libc::uint8_t; 64]);
+
+impl hci_commands {
+	pub fn command_name(command: u32) -> Option<&'static str> {
+		let s = unsafe { hci_cmdtostr(command as libc::c_uint) };
+		if s == 0 as *const libc::c_char {
+			None
+		} else {
+			let buf: &[u8] = unsafe { ffi::CStr::from_ptr(s).to_bytes() };
+			str::from_utf8(buf).ok()
+		}
+	}
+}
+
+impl std::fmt::Debug for hci_commands {
+	fn fmt(&self, formatter: &mut std::fmt::Formatter) -> Result<(), std::fmt::Error> {
+		write!(formatter, "hci_commands {{}}")
+	}
+}
+
 
 #[link(name = "bluetooth")]
 extern {
@@ -61,7 +84,7 @@ extern {
 	pub fn hci_read_local_name(dd: libc::c_int, len: libc::c_int, name: *mut libc::c_char, to: libc::c_int) -> libc::c_int;
 	pub fn hci_write_local_name(dd: libc::c_int, name: *const libc::c_char, to: libc::c_int) -> libc::c_int;
 	pub fn hci_read_local_version(dd: libc::c_int, ver: *mut hci_version, to: libc::c_int) -> libc::c_int;
-	// pub fn hci_read_local_commands(dd: libc::c_int, commands: *mut libc::uint8_t, to: libc::c_int) -> libc::c_int;
+	pub fn hci_read_local_commands(dd: libc::c_int, commands: *mut hci_commands, to: libc::c_int) -> libc::c_int;
 	// pub fn hci_read_local_features(dd: libc::c_int, features: *mut uint8_t, to: libc::c_int) -> libc::c_int;
 	// pub fn hci_read_local_ext_features(dd: libc::c_int, page: libc::uint8_t, max_page: *mut libc::uint8_t, features: *mut libc::uint8_t, to: libc::c_int) -> libc::c_int;
 

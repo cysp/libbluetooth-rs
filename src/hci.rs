@@ -66,6 +66,63 @@ impl std::fmt::Debug for HciVersion {
 }
 
 
+pub struct HciCommands {
+	raw: raw::hci_commands,
+}
+
+impl HciCommands {
+	pub fn numbers(&self) -> HciCommandNumbers {
+		HciCommandNumbers { commands: &self, cur: 0 }
+	}
+	pub fn names(&self) -> HciCommandNames {
+		HciCommandNames { commands: &self, cur: 0 }
+	}
+}
+
+pub struct HciCommandNumbers<'a> {
+	commands: &'a HciCommands,
+	cur: u32,
+}
+
+impl<'a> Iterator for HciCommandNumbers<'a> {
+	type Item = u32;
+
+	fn next(&mut self) -> Option<u32> {
+		for i in range(self.cur, 8 * 64) {
+			let supported: bool = (*(self.commands.raw.0.get((i / 8) as usize).unwrap()) & (1 << (i % 8) as u8)) != 0;
+			if supported {
+				self.cur = i + 1;
+				return Some(i);
+			}
+		}
+		None
+	}
+}
+
+pub struct HciCommandNames<'a> {
+	commands: &'a HciCommands,
+	cur: u32,
+}
+
+impl<'a> Iterator for HciCommandNames<'a> {
+	type Item = String;
+
+	fn next(&mut self) -> Option<String> {
+		for i in range(self.cur, 8 * 64) {
+			let supported: bool = (*(self.commands.raw.0.get((i / 8) as usize).unwrap()) & (1 << (i % 8) as u8)) != 0;
+			if supported {
+				self.cur = i + 1;
+				return Some(match raw::hci_commands::command_name(i) {
+					Some(name) => name.to_owned(),
+					None => format!("{}", i),
+				})
+			}
+		}
+		None
+	}
+}
+
+
 pub struct HciDeviceHandle {
 	d: libc::c_int,
 }
@@ -121,6 +178,16 @@ impl HciDeviceHandle {
 		Ok(HciVersion { raw: v })
 	}
 
+	pub fn read_local_commands(&self) -> Result<HciCommands, HciError> {
+		let mut c = raw::hci_commands([0u8; 64]);
+		let rv = unsafe { raw::hci_read_local_commands(self.d, &mut c, 1000) };
+		if rv < 0 {
+			return Err(HciError { errno: std::os::errno() });
+		}
+
+		Ok(HciCommands { raw: c })
+	}
+
 	pub fn read_remote_name(&self, addr: &common::ToBdAddr) -> Result<String, HciError> {
 		let a = addr.to_bdaddr();
 		let mut name = [0 as u8; 248];
@@ -161,6 +228,8 @@ mod tests {
 			let _ = name;
 			let v = d.read_local_version().unwrap();
 			let _ = v;
+			let c = d.read_local_commands().unwrap();
+			let _ = c.numbers();
 		}
 
 		if let Ok(d) = HciDeviceHandle::new(&[0,0,0,0,0,0]) {

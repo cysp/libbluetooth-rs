@@ -4,11 +4,23 @@ use bluetooth::{HciDeviceHandle, BDADDR_ANY};
 
 
 fn main() {
-	let d = HciDeviceHandle::new(&BDADDR_ANY).unwrap();
+	let d = match HciDeviceHandle::new(&BDADDR_ANY) {
+		Ok(d) => d,
+		Err(_) => return (),
+	};
 
-	let name = d.read_local_name().unwrap();
-	println!("name: {}", name);
+	if let Ok(name) = d.read_local_name() {
+		println!("name: {}", name);
+	}
 
-	let v = d.read_local_version().unwrap();
-	println!("version: {:?}", v);
+	if let Ok(version) = d.read_local_version() {
+		println!("version: {:?}", version);
+	}
+
+	if let Ok(commands) = d.read_local_commands() {
+		println!("commands:");
+		for command in commands.names() {
+			println!("  {:?}", command);
+		}
+	}
 }
