@@ -19,7 +19,7 @@ fn main() {
 
 	if let Ok(commands) = d.read_local_commands() {
 		println!("commands:");
-		for command in commands.names() {
+		for command in commands.iter() {
 			println!("  {:?}", command);
 		}
 	}

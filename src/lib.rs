@@ -8,4 +8,4 @@ mod hci;
 
 pub use common::{BdAddr, ToBdAddr, BDADDR_ANY, BDADDR_ALL, BDADDR_LOCAL};
 pub use hci::{HciError};
-pub use hci::{HciDeviceHandle, HciVersion, HciCommands};
+pub use hci::{HciDeviceHandle, HciVersion, HciCommands, HciCommand, HciCommandIterator};
