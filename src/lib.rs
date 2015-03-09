@@ -1,6 +1,7 @@
 #![feature(core)]
 #![feature(libc)]
 #![feature(os)]
+#![feature(std_misc)]
 
 pub mod raw;
 mod common;

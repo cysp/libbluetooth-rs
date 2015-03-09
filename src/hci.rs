@@ -116,7 +116,7 @@ pub struct HciDeviceHandle {
 
 impl HciDeviceHandle {
 
-	pub fn new(addr: &common::ToBdAddr) -> Result<HciDeviceHandle, HciError> {
+	pub fn new<T>(addr: &T) -> Result<HciDeviceHandle, HciError> where T: common::ToBdAddr {
 		let a = addr.to_bdaddr();
 
 		let d = unsafe { raw::hci_get_route(&a.to_raw()) };
@@ -175,7 +175,7 @@ impl HciDeviceHandle {
 		Ok(HciCommands { raw: c })
 	}
 
-	pub fn read_remote_name(&self, addr: &common::ToBdAddr) -> Result<String, HciError> {
+	pub fn read_remote_name<T>(&self, addr: &T) -> Result<String, HciError> where T: common::ToBdAddr {
 		let a = addr.to_bdaddr();
 		let mut name = [0 as u8; 248];
 		let rv = unsafe { raw::hci_read_remote_name(self.d, &a.to_raw(), 248, &mut name as *mut _ as *mut libc::c_char, 1000) };
@@ -200,6 +200,12 @@ impl Drop for HciDeviceHandle {
 		}
 	}
 
+}
+
+impl std::os::unix::AsRawFd for HciDeviceHandle {
+    fn as_raw_fd(&self) -> std::os::unix::Fd {
+        self.d
+    }
 }
 
 

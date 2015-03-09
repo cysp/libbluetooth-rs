@@ -2,7 +2,6 @@ extern crate libc;
 extern crate std;
 
 use std::ffi;
-use std::fmt;
 use std::str;
 
 
@@ -81,7 +80,6 @@ impl std::fmt::Debug for hci_commands {
 
 #[link(name = "bluetooth")]
 extern {
-
 	pub fn hci_get_route(bdaddr: * const bdaddr_t) -> libc::c_int;
 
 	pub fn hci_open_dev(dev_id: libc::c_int) -> libc::c_int;
@@ -96,18 +94,12 @@ extern {
 	pub fn hci_write_local_name(dd: libc::c_int, name: *const libc::c_char, to: libc::c_int) -> libc::c_int;
 	pub fn hci_read_local_version(dd: libc::c_int, ver: *mut hci_version, to: libc::c_int) -> libc::c_int;
 	pub fn hci_read_local_commands(dd: libc::c_int, commands: *mut hci_commands, to: libc::c_int) -> libc::c_int;
-	// pub fn hci_read_local_features(dd: libc::c_int, features: *mut uint8_t, to: libc::c_int) -> libc::c_int;
-	// pub fn hci_read_local_ext_features(dd: libc::c_int, page: libc::uint8_t, max_page: *mut libc::uint8_t, features: *mut libc::uint8_t, to: libc::c_int) -> libc::c_int;
 
 	pub fn hci_read_remote_name(dd: libc::c_int, bdaddr: *const bdaddr_t, len: libc::c_int, name: *mut libc::c_char, to: libc::c_int) -> libc::c_int;
 	// int hci_read_remote_name_with_clock_offset(int dd, const bdaddr_t *bdaddr, uint8_t pscan_rep_mode, uint16_t clkoffset, int len, char *name, int to);
 	// int hci_read_remote_name_cancel(int dd, const bdaddr_t *bdaddr, int to);
 	// int hci_read_remote_version(int dd, uint16_t handle, struct hci_version *ver, int to);
-	// int hci_read_remote_features(int dd, uint16_t handle, uint8_t *features, int to);
-	// int hci_read_remote_ext_features(int dd, uint16_t handle, uint8_t page, uint8_t *max_page, uint8_t *features, int to);
 	// int hci_read_clock_offset(int dd, uint16_t handle, uint16_t *clkoffset, int to);
-
-
 }
 
 
