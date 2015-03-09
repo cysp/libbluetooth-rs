@@ -35,6 +35,9 @@ impl HciVersion {
 	pub fn manufacturer(&self) -> u16 {
 		self.raw.manufacturer
 	}
+	pub fn manufacturer_str(&self) -> Option<&'static str> {
+		self.raw.manufacturer_str()
+	}
 	pub fn hci_ver(&self) -> u8 {
 		self.raw.hci_ver
 	}
@@ -58,7 +61,7 @@ impl HciVersion {
 impl std::fmt::Debug for HciVersion {
 	fn fmt(&self, formatter: &mut std::fmt::Formatter) -> Result<(), std::fmt::Error> {
 		write!(formatter, "HciVersion {{ manufacturer: {}, hci_ver: {}, hci_rev: {}, lmp_ver: {}, lmp_subver: {} }}",
-			self.manufacturer(),
+			self.manufacturer_str().unwrap_or(&format!("unknown({})", self.manufacturer())),
 			self.hci_ver_str().unwrap_or(&format!("unknown({})", self.hci_ver())), self.hci_rev(),
 			self.lmp_ver_str().unwrap_or(&format!("unknown({})", self.lmp_ver())), self.lmp_subver(),
 			)

@@ -26,6 +26,16 @@ pub struct hci_version {
 }
 
 impl hci_version {
+	pub fn manufacturer_str(&self) -> Option<&'static str> {
+		let s = unsafe { bt_compidtostr(self.manufacturer as libc::c_int) };
+		if s.is_null() {
+			None
+		} else {
+			let buf: &[u8] = unsafe { ffi::CStr::from_ptr(s).to_bytes() };
+			str::from_utf8(buf).ok()
+		}
+	}
+
 	pub fn hci_ver_str(&self) -> Option<&'static str> {
 		let s = unsafe { hci_vertostr(self.hci_ver as libc::c_uint) };
 		if s == 0 as *const libc::c_char {
@@ -80,6 +90,7 @@ extern {
 	pub fn hci_vertostr(ver: libc::c_uint) -> *const libc::c_char;
 	pub fn lmp_vertostr(ver: libc::c_uint) -> *const libc::c_char;
 	pub fn hci_cmdtostr(ver: libc::c_uint) -> *const libc::c_char;
+	pub fn bt_compidtostr(compid: libc::c_int) -> *const libc::c_char;
 
 	pub fn hci_read_local_name(dd: libc::c_int, len: libc::c_int, name: *mut libc::c_char, to: libc::c_int) -> libc::c_int;
 	pub fn hci_write_local_name(dd: libc::c_int, name: *const libc::c_char, to: libc::c_int) -> libc::c_int;
