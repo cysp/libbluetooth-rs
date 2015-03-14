@@ -3,3 +3,11 @@
 name = "bluetooth"
 version = "0.0.1"
 authors = ["Scott Talbot <s@chikachow.org>"]
+
+
+[dependencies.mio]
+git = "https://github.com/carllerche/mio"
+
+[dependencies.nix]
+#git = "https://github.com/carllerche/nix-rust"
+path = "lib/nix-rust"

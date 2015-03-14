@@ -17,10 +17,10 @@ fn main() {
 		println!("version: {:?}", version);
 	}
 
-	if let Ok(commands) = d.read_local_commands() {
-		println!("commands:");
-		for command in commands.iter() {
-			println!("  {:?}", command);
-		}
-	}
+	// if let Ok(commands) = d.read_local_commands() {
+	// 	println!("commands:");
+	// 	for command in commands.iter() {
+	// 		println!("  {:?}", command);
+	// 	}
+	// }
 }

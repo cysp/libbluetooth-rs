@@ -14,6 +14,18 @@ pub static BDADDR_ALL: bdaddr_t = bdaddr_t([0xff, 0xff, 0xff, 0xff, 0xff, 0xff])
 pub static BDADDR_LOCAL: bdaddr_t = bdaddr_t([0, 0, 0, 0xff, 0xff, 0xff]);
 
 
+pub static SOL_HCI: libc::c_int = 0;
+pub static SOL_L2CAP: libc::c_int = 6;
+pub static SOL_SCO: libc::c_int = 17;
+pub static SOL_RFCOMM: libc::c_int = 18;
+pub static SOL_BLUETOOTH: libc::c_int = 274;
+
+// HCI Socket options
+pub static HCI_DATA_DIR: libc::c_int = 1;
+pub static HCI_FILTER: libc::c_int = 2;
+pub static HCI_TIME_STAMP: libc::c_int = 3;
+
+
 #[repr(C)]
 #[derive(Copy,Debug)]
 pub struct hci_version {
@@ -77,6 +89,14 @@ impl std::fmt::Debug for hci_commands {
 	}
 }
 
+#[repr(C)]
+#[derive(Debug)]
+pub struct hci_filter {
+	pub type_mask: libc::uint32_t,
+	pub event_mask: libc::uint64_t,
+	pub opcode: libc::uint16_t,
+}
+
 
 #[link(name = "bluetooth")]
 extern {
@@ -98,8 +118,12 @@ extern {
 	pub fn hci_read_remote_name(dd: libc::c_int, bdaddr: *const bdaddr_t, len: libc::c_int, name: *mut libc::c_char, to: libc::c_int) -> libc::c_int;
 	// int hci_read_remote_name_with_clock_offset(int dd, const bdaddr_t *bdaddr, uint8_t pscan_rep_mode, uint16_t clkoffset, int len, char *name, int to);
 	// int hci_read_remote_name_cancel(int dd, const bdaddr_t *bdaddr, int to);
-	// int hci_read_remote_version(int dd, uint16_t handle, struct hci_version *ver, int to);
+	// pub fn hci_read_remote_version(dd: libc::c_int, handle: libc::uint16_t, ver: *mut hci_version, to: libc::c_int) -> libc::c_int;
 	// int hci_read_clock_offset(int dd, uint16_t handle, uint16_t *clkoffset, int to);
+
+	pub fn hci_le_set_scan_enable(dd: libc::c_int, enable: libc::uint8_t, filter_dup: libc::uint8_t, to: libc::c_int) -> libc::c_int;
+	pub fn hci_le_set_scan_parameters(dd: libc::c_int, scan_type: libc::uint8_t, interval: libc::uint16_t, window: libc::uint16_t, own_type: libc::uint8_t, filter: libc::uint8_t, to: libc::c_int) -> libc::c_int;
+	pub fn hci_le_set_advertise_enable(dd: libc::c_int, enable: libc::uint8_t, to: libc::c_int) -> libc::c_int;
 }
 
 
