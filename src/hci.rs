@@ -413,13 +413,13 @@ impl<'a> HciCommandPacket<'a> {
 			Err(e) => return None,
 		};
 		let parameter_data = &bytes[(c.position() as usize)..];
-		match parameter_data.len() {
-			parameter_data_length => Some(HciCommandPacket {
+		if parameter_data.len() == parameter_data_length as usize {
+			return Some(HciCommandPacket {
 				opcode: opcode,
 				parameter_data: parameter_data,
-			}),
-			// _ => None,
+			});
 		}
+		None
 	}
 }
 
@@ -440,13 +440,13 @@ impl<'a> HciEventPacket<'a> {
 			Err(e) => return None,
 		};
 		let parameter_data = &bytes[(c.position() as usize)..];
-		match parameter_data.len() {
-			parameter_data_length => Some(HciEventPacket {
+		if parameter_data.len() == parameter_data_length as usize {
+			return Some(HciEventPacket {
 				event_code: event_code,
 				parameter_data: parameter_data,
-			}),
-			// _ => None,
+			});
 		}
+		None
 	}
 }
 
