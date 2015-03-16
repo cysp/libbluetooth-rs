@@ -1,0 +1,4 @@
+[submodule "lib/nix-rust"]
+	path = lib/nix-rust
+	url = git@github.com:cysp/nix-rust.git
+	branch = hackery
