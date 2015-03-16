@@ -236,14 +236,15 @@ fn main() {
 
 
 	// event mask
-	let opcode: u16 = 0x03 << 10 | 0x0001;
+	// let opcode: u16 = 0x03 << 10 | 0x0001;
+	let opcode = bluetooth::HciOpcode::Controller(bluetooth::HciControllerOpcode::SetEventMask).to_u16();
 	let mut command: std::vec::Vec<u8> = std::vec::Vec::with_capacity(4);
 	WriteBytesExt::write_u8(&mut command, 0x01);
 	WriteBytesExt::write_u16::<LittleEndian>(&mut command, opcode);
 	WriteBytesExt::write_u8(&mut command, 0x08);
 	WriteBytesExt::write_u64::<LittleEndian>(&mut command, 0x3dbff807fffbffff as u64);
 
-	println!("write: {:?}", &*command.to_hex());
+	println!("write: {:?}", bluetooth::HciPacket::from_bytes(&*command));
 	match nix::unistd::write(s, &*command) {
 		Ok(size) => println!("wrote {} bytes", size),
 		Err(e) => panic!("err: {:?}", e),
@@ -257,7 +258,7 @@ fn main() {
 	WriteBytesExt::write_u8(&mut command, 0x08);
 	WriteBytesExt::write_u64::<LittleEndian>(&mut command, 0x1f as u64);
 
-	println!("write: {:?}", &*command.to_hex());
+	println!("write: {:?}", bluetooth::HciPacket::from_bytes(&*command));
 	match nix::unistd::write(s, &*command) {
 		Ok(size) => println!("wrote {} bytes", size),
 		Err(e) => panic!("err: {:?}", e),
@@ -275,7 +276,7 @@ fn main() {
 	WriteBytesExt::write_u8(&mut command, 0x00);
 	WriteBytesExt::write_u8(&mut command, 0x00);
 
-	println!("write: {:?}", &*command.to_hex());
+	println!("write: {:?}", bluetooth::HciPacket::from_bytes(&*command));
 	match nix::unistd::write(s, &*command) {
 		Ok(size) => println!("wrote {} bytes", size),
 		Err(e) => panic!("err: {:?}", e),
@@ -290,26 +291,17 @@ fn main() {
 	WriteBytesExt::write_u8(&mut command, 0x01);
 	WriteBytesExt::write_u8(&mut command, 0x00);
 
-	println!("write: {:?}", &*command.to_hex());
+	println!("write: {:?}", bluetooth::HciPacket::from_bytes(&*command));
 	match nix::unistd::write(s, &*command) {
 		Ok(size) => println!("wrote {} bytes", size),
 		Err(e) => panic!("err: {:?}", e),
 	}
 
 
-	let mut event_loop = match mio::EventLoop::new() {
-		Ok(e) => e,
-		Err(e) => panic!("err: {}", e),
-	};
-
 	let sio = mio::Io::new(s);
+	let mut scanner = BleScanner::new(sio);
 
-	match event_loop.register_opt(&sio, HCISocketToken, mio::Interest::readable(), mio::PollOpt::edge()) {
-		Ok(_) => (),
-		Err(e) => panic!("err: {}", e),
-	}
-
-	match event_loop.run(&mut BleScanner::new(sio)) {
+	match scanner.run() {
 		Ok(_) => (),
 		Err(e) => panic!("err: {}", e),
 	}
@@ -328,7 +320,23 @@ struct BleScanner {
 
 impl BleScanner {
 	fn new(s: mio::Io) -> BleScanner {
-		BleScanner { hcisock: s }
+		BleScanner {
+			hcisock: s,
+		}
+	}
+
+	pub fn run(&mut self) -> std::io::Result<()> {
+		let mut event_loop = match mio::EventLoop::new() {
+			Ok(e) => e,
+			Err(e) => panic!("err: {}", e),
+		};
+
+		match event_loop.register_opt(&self.hcisock, HCISocketToken, mio::Interest::readable(), mio::PollOpt::edge()) {
+			Ok(_) => (),
+			Err(e) => panic!("err: {}", e),
+		}
+
+		event_loop.run(self)
 	}
 }
 
@@ -345,8 +353,9 @@ impl mio::Handler for BleScanner {
 						panic!("We just got readable, but were unable to read from the socket?");
 					}
 					Ok(Some(r)) => {
-						println!("CLIENT : We read {} bytes!", r);
+						let e = bluetooth::HciPacket::from_bytes(&buf[0..r]);
 						println!("data: {:?}", buf[0..r].to_hex());
+						println!("    event: {:?}", e);
 					}
 					Err(e) => {
 						match e.kind() {

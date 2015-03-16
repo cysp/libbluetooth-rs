@@ -4,10 +4,10 @@ use bluetooth::{HciHandle};
 
 
 fn main() {
-	let d = match HciHandle::new(0) {
-		Ok(d) => d,
-		Err(_) => return (),
-	};
+	// let d = match HciHandle::new(0) {
+	// 	Ok(d) => d,
+	// 	Err(_) => return (),
+	// };
 
 	// if let Ok(name) = d.read_local_name() {
 	// 	println!("name: {}", name);

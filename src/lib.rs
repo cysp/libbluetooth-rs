@@ -1,12 +1,16 @@
 extern crate libc;
 extern crate serialize;
 
+extern crate byteorder;
+extern crate bytes;
 extern crate nix;
 
 
 mod hci;
 
-pub use hci::{HciHandle};
+pub use hci::HciHandle;
+pub use hci::{HciOpcode,HciControllerOpcode,HciLeControllerOpcode};
+pub use hci::{HciPacket};
 
 
 #[derive(Copy)]

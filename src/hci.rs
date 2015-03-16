@@ -6,9 +6,12 @@ extern crate libc;
 use std;
 use std::error::{Error};
 use std::borrow::ToOwned;
+use std::num::FromPrimitive;
 
 use serialize::hex::ToHex;
 
+use bytes;
+use byteorder::{ReadBytesExt,WriteBytesExt,LittleEndian};
 use nix;
 
 
@@ -145,13 +148,327 @@ pub enum HciLeScanFilter {
 }
 
 
+#[derive(Copy,Debug,PartialEq,Eq)]
+pub enum HciOpcodeGroup {
+	Controller = 0x03,
+	Informational = 0x04,
+	LeController = 0x08,
+}
+
+impl HciOpcodeGroup {
+	pub fn from_u16(opcode: u16) -> Option<HciOpcodeGroup> {
+		match opcode >> 10 {
+			0x03 => Some(HciOpcodeGroup::Controller),
+			0x04 => Some(HciOpcodeGroup::Informational),
+			0x08 => Some(HciOpcodeGroup::LeController),
+			_ => None,
+		}
+	}
+}
+
+#[derive(Copy,Debug,PartialEq,Eq)]
+pub enum HciOpcode {
+	Controller(HciControllerOpcode),
+	Informational(HciInformationalOpcode),
+	LeController(HciLeControllerOpcode),
+}
+
+impl HciOpcode {
+	pub fn from_u16(opcode: u16) -> Option<HciOpcode> {
+		let group = match HciOpcodeGroup::from_u16(opcode) {
+			Some(g) => g,
+			None => return None,
+		};
+		match group {
+			HciOpcodeGroup::Controller => match HciControllerOpcode::from_u16(opcode) {
+				Some(opcode) => Some(HciOpcode::Controller(opcode)),
+				None => None,
+			},
+			HciOpcodeGroup::Informational => match HciInformationalOpcode::from_u16(opcode) {
+				Some(opcode) => Some(HciOpcode::Informational(opcode)),
+				None => None,
+			},
+			HciOpcodeGroup::LeController => match HciLeControllerOpcode::from_u16(opcode) {
+				Some(opcode) => Some(HciOpcode::LeController(opcode)),
+				None => None,
+			},
+		}
+	}
+
+	pub fn to_u16(&self) -> u16 {
+		match self {
+			&HciOpcode::Controller(opcode) => opcode.to_u16(),
+			&HciOpcode::Informational(opcode) => opcode.to_u16(),
+			&HciOpcode::LeController(opcode) => opcode.to_u16(),
+		}
+	}
+}
+
+#[derive(Copy,Debug,PartialEq,Eq,FromPrimitive)]
+pub enum HciControllerOpcode {
+	SetEventMask = 0x0001,
+	Reset = 0x0003,
+	SetEventFilter = 0x0005,
+	Flush = 0x0008,
+	ReadPINType = 0x0009,
+	WritePINType = 0x000A,
+}
+
+impl HciControllerOpcode {
+	pub fn from_u16(opcode: u16) -> Option<HciControllerOpcode> {
+		match HciOpcodeGroup::from_u16(opcode) {
+			Some(HciOpcodeGroup::Controller) => HciControllerOpcode::from_trusted_u16(opcode),
+			_ => None,
+		}
+	}
+
+	fn from_trusted_u16(opcode: u16) -> Option<HciControllerOpcode> {
+		FromPrimitive::from_u16(opcode & ((1 << 10) - 1))
+	}
+
+	pub fn to_u16(&self) -> u16 {
+		((HciOpcodeGroup::Controller as u16) << 10) | (*self as u16)
+	}
+}
+
+#[derive(Copy,Debug,PartialEq,Eq,FromPrimitive)]
+pub enum HciInformationalOpcode {
+	ReadLocalVersionInformation = 0x0001,
+	ReadLocalSupportedCommands = 0x0002,
+	ReadLocalSupportedFeatures = 0x0003,
+	ReadLocalExtendedFeatures = 0x0004,
+	ReadBufferSize = 0x0005,
+	ReadBdAddr = 0x0009,
+	ReadDataBlockSize = 0x000A,
+}
+
+impl HciInformationalOpcode {
+	pub fn from_u16(opcode: u16) -> Option<HciInformationalOpcode> {
+		match HciOpcodeGroup::from_u16(opcode) {
+			Some(HciOpcodeGroup::Informational) => HciInformationalOpcode::from_trusted_u16(opcode),
+			_ => None,
+		}
+	}
+
+	fn from_trusted_u16(opcode: u16) -> Option<HciInformationalOpcode> {
+		FromPrimitive::from_u16(opcode & ((1 << 10) - 1))
+	}
+
+	pub fn to_u16(&self) -> u16 {
+		((HciOpcodeGroup::Informational as u16) << 10) | (*self as u16)
+	}
+}
+
+#[derive(Copy,Debug,PartialEq,Eq,FromPrimitive)]
+pub enum HciLeControllerOpcode {
+	SetEventMask = 0x0001,
+	ReadLocalSupportedFeatures = 0x0003,
+	SetAdvertisingParameters = 0x0006,
+	SetAdvertisingData = 0x0008,
+	SetScanResponseData = 0x0009,
+	SetAdvertiseEnable = 0x000A,
+	SetScanParameters = 0x000B,
+	SetScanEnable = 0x000C,
+}
+
+impl HciLeControllerOpcode {
+	pub fn from_u16(opcode: u16) -> Option<HciLeControllerOpcode> {
+		match HciOpcodeGroup::from_u16(opcode) {
+			Some(HciOpcodeGroup::LeController) => HciLeControllerOpcode::from_trusted_u16(opcode),
+			_ => None,
+		}
+	}
+
+	fn from_trusted_u16(opcode: u16) -> Option<HciLeControllerOpcode> {
+		FromPrimitive::from_u16(opcode & ((1 << 10) - 1))
+	}
+
+	pub fn to_u16(&self) -> u16 {
+		((HciOpcodeGroup::LeController as u16) << 10) | (*self as u16)
+	}
+}
+
+
+#[derive(Copy,Debug,PartialEq,Eq,FromPrimitive)]
+pub enum HciEventCode {
+	CommandComplete = 0x0e,
+	CommandStatus = 0x0f,
+	LeMeta = 0x3e,
+}
+
+impl HciEventCode {
+	pub fn from_u8(event_code: u8) -> Option<HciEventCode> {
+		FromPrimitive::from_u8(event_code)
+	}
+}
+
+#[derive(Copy,Debug,PartialEq,Eq,FromPrimitive)]
+pub enum HciLeMetaSubeventCode {
+	ConnectionComplete = 0x01,
+	AdvertisingReport = 0x02,
+	ConnectionUpdateComplete = 0x03,
+	ReadRemoteUsedFeaturesComplete = 0x04,
+	LongTermKeyRequest = 0x05,
+}
+
+impl HciLeMetaSubeventCode {
+	pub fn from_u8(event_code: u8) -> Option<HciLeMetaSubeventCode> {
+		FromPrimitive::from_u8(event_code)
+	}
+}
+
+
+#[derive(Copy,Debug,PartialEq,Eq,FromPrimitive)]
+pub enum HciPacketType {
+	Command = 0x01,
+	AclData = 0x02,
+	ScoData = 0x03,
+	Event = 0x04,
+	Vendor = 0xff,
+}
+
+#[derive(Debug)]
+pub struct HciCommandPacket<'a> {
+	opcode: HciOpcode,
+	parameter_data: &'a [u8],
+}
+#[derive(Debug)]
+pub struct HciAclDataPacket<'a> {
+	data: &'a [u8],
+}
+#[derive(Debug)]
+pub struct HciScoDataPacket<'a> {
+	data: &'a [u8],
+}
+#[derive(Debug)]
+pub struct HciEventPacket<'a> {
+	event_code: HciEventCode,
+	parameter_data: &'a [u8],
+}
+#[derive(Debug)]
+pub struct HciVendorPacket<'a> {
+	data: &'a [u8],
+}
+
+#[derive(Debug)]
+pub enum HciPacket<'a> {
+	Command(HciCommandPacket<'a>),
+	AclData(HciAclDataPacket<'a>),
+	ScoData(HciScoDataPacket<'a>),
+	Event(HciEventPacket<'a>),
+	Vendor(HciVendorPacket<'a>),
+}
+
+impl<'a> HciPacket<'a> {
+	pub fn from_bytes(bytes: &'a [u8]) -> Option<HciPacket<'a>> {
+		let mut c = std::io::Cursor::new(bytes);
+		let packet_type = match c.read_u8() {
+			Ok(packet_type) => packet_type,
+			Err(e) => return None,
+		};
+		let packet_type: HciPacketType = match FromPrimitive::from_u8(packet_type) {
+			Some(packet_type) => packet_type,
+			None => return None,
+		};
+		match packet_type {
+			HciPacketType::Command => {
+				match HciCommandPacket::from_bytes(&bytes[1..]) {
+					Some(p) => Some(HciPacket::Command(p)),
+					None => None,
+				}
+			},
+			HciPacketType::AclData => {
+				None
+			},
+			HciPacketType::ScoData => {
+				None
+			},
+			HciPacketType::Event => {
+				match HciEventPacket::from_bytes(&bytes[1..]) {
+					Some(p) => Some(HciPacket::Event(p)),
+					None => None,
+				}
+			},
+			HciPacketType::Vendor => {
+				None
+			},
+		}
+	}
+}
+
+
+impl<'a> HciCommandPacket<'a> {
+	pub fn from_bytes(bytes: &'a [u8]) -> Option<HciCommandPacket<'a>> {
+		let mut c = std::io::Cursor::new(bytes);
+		let opcode = match c.read_u16::<LittleEndian>() {
+			Ok(opcode) => opcode,
+			Err(e) => return None,
+		};
+		let opcode = match HciOpcode::from_u16(opcode) {
+			Some(opcode) => opcode,
+			None => return None,
+		};
+		let parameter_data_length = match c.read_u8() {
+			Ok(length) => length,
+			Err(e) => return None,
+		};
+		let parameter_data = &bytes[(c.position() as usize)..];
+		match parameter_data.len() {
+			parameter_data_length => Some(HciCommandPacket {
+				opcode: opcode,
+				parameter_data: parameter_data,
+			}),
+			// _ => None,
+		}
+	}
+}
+
+
+impl<'a> HciEventPacket<'a> {
+	pub fn from_bytes(bytes: &'a [u8]) -> Option<HciEventPacket<'a>> {
+		let mut c = std::io::Cursor::new(bytes);
+		let event_code = match c.read_u8() {
+			Ok(event_code) => event_code,
+			Err(e) => return None,
+		};
+		let event_code = match HciEventCode::from_u8(event_code) {
+			Some(event_code) => event_code,
+			None => return None,
+		};
+		let parameter_data_length = match c.read_u8() {
+			Ok(length) => length,
+			Err(e) => return None,
+		};
+		let parameter_data = &bytes[(c.position() as usize)..];
+		match parameter_data.len() {
+			parameter_data_length => Some(HciEventPacket {
+				event_code: event_code,
+				parameter_data: parameter_data,
+			}),
+			// _ => None,
+		}
+	}
+}
+
+
+#[derive(Copy,Debug)]
+pub enum HciEvent<'a> {
+	Unknown(&'a [u8]),
+}
+
+impl<'a> HciEvent<'a> {
+	pub fn from_bytes(bytes: &'a [u8]) -> Option<HciEvent<'a>> {
+		None
+	}
+}
+
+
 pub struct HciHandle {
 	device_number: u16,
 	s: libc::c_int,
 	// t: std::thread::JoinGuard<'a, u8>,
 	// tx: std::sync::mpsc::Sender<u8>,
 }
-
 
 impl HciHandle {
 
