@@ -1,14 +1,7 @@
 extern crate libc;
 
 use std;
-use std::io;
-use std::error::{Error};
-use std::borrow::ToOwned;
-use std::num::FromPrimitive;
-
-use serialize::hex::ToHex;
-
-use byteorder::{ReadBytesExt,WriteBytesExt,LittleEndian};
+use byteorder::{ReadBytesExt,LittleEndian};
 
 
 mod consts {

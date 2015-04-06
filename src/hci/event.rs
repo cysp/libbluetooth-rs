@@ -1,3 +1,5 @@
+#![allow(unused_imports)]
+
 extern crate libc;
 
 use std;

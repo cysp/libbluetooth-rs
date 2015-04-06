@@ -3,7 +3,6 @@
 #![feature(collections)]
 #![allow(dead_code)]
 #![allow(unused_variables)]
-#![allow(unused_imports)]
 
 extern crate libc;
 extern crate rustc_serialize as serialize;
@@ -29,7 +28,7 @@ pub use hci::opcode::HciVendorOpcode;
 // pub use hci::HciEventPacket;
 
 // pub use hci::HciCommand;
-pub use hci::command::{self,HciCommand,HciCommandBuilder,HciCommandBuilderAddParameter};
+pub use hci::command::{self,HciCommand,HciCommandBuilder,HciCommandBuilding};
 
 
 #[derive(Clone,Copy)]
