@@ -448,12 +448,100 @@ impl<'a> HciEventPacket<'a> {
 		}
 		None
 	}
+
+	pub fn to_event(&self) -> Option<HciEvent<'a>> {
+		match self.event_code {
+			HciEventCode::CommandComplete => {
+				let mut c = std::io::Cursor::new(self.parameter_data);
+				let num_hci_command_packets = match c.read_u8() {
+					Ok(num_hci_command_packets) => num_hci_command_packets,
+					Err(e) => return None,
+				};
+				let command_opcode = match c.read_u16::<LittleEndian>() {
+					Ok(command_opcode) => command_opcode,
+					Err(e) => return None,
+				};
+				let command_opcode = match HciOpcode::from_u16(command_opcode) {
+					Some(command_opcode) => command_opcode,
+					None => return None,
+				};
+				let return_parameter_data = &self.parameter_data[(c.position() as usize)..];
+				Some(HciEvent::CommandComplete {
+					num_hci_command_packets: num_hci_command_packets,
+					command_opcode: command_opcode,
+					return_parameter_data: return_parameter_data,
+				})
+			},
+			HciEventCode::CommandStatus => {
+				let mut c = std::io::Cursor::new(self.parameter_data);
+				let status = match c.read_u8() {
+					Ok(status) => status,
+					Err(e) => return None,
+				};
+				let num_hci_command_packets = match c.read_u8() {
+					Ok(num_hci_command_packets) => num_hci_command_packets,
+					Err(e) => return None,
+				};
+				let command_opcode = match c.read_u16::<LittleEndian>() {
+					Ok(command_opcode) => command_opcode,
+					Err(e) => return None,
+				};
+				let command_opcode = match HciOpcode::from_u16(command_opcode) {
+					Some(command_opcode) => command_opcode,
+					None => return None,
+				};
+				Some(HciEvent::CommandStatus {
+					status: status,
+					num_hci_command_packets: num_hci_command_packets,
+					command_opcode: command_opcode,
+				})
+			},
+			HciEventCode::LeMeta => {
+				None
+				// let mut c = std::io::Cursor::new(self.parameter_data);
+				// let subevent_code = match c.read_u8() {
+				// 	Ok(subevent_code) => subevent_code,
+				// 	Err(e) => return None,
+				// };
+				// let subevent_code = match HciLeMetaSubeventCode::from_u8(subevent_code) {
+				// 	Ok(subevent_code) => subevent_code,
+				// 	Err(e) => return None,
+				// };
+				// match subevent_code {
+				// 	HciLeMetaSubeventCode::AdvertisingReport => {
+				// 		let mut c = std::io::Cursor::new(self.parameter_data);
+				// 		let num_reports = match c.read_u8() {
+				// 			Ok(num_reports) => num_reports,
+				// 			Err(e) => return None,
+				// 		};
+				// 	},
+				// 	_ => None,
+				// }
+			},
+		}
+	}
 }
 
 
 #[derive(Copy,Debug)]
 pub enum HciEvent<'a> {
-	Unknown(&'a [u8]),
+	CommandComplete{ num_hci_command_packets: u8, command_opcode: HciOpcode, return_parameter_data: &'a [u8] },
+	CommandStatus{ status: u8, num_hci_command_packets: u8, command_opcode: HciOpcode },
+	LeMeta(HciLeMetaEvent<'a>),
+}
+
+#[derive(Copy,Debug)]
+pub enum HciLeMetaEvent<'a> {
+	AdvertisingReport{ reports: &'a [HciLeAdvertisingReport<'a>] },
+}
+
+#[derive(Copy,Debug)]
+pub struct HciLeAdvertisingReport<'a> {
+	pub event_type: u8,
+	pub address_type: u8,
+	pub address: [u8; 6],
+	pub data: &'a [u8],
+	pub rssi: u8,
 }
 
 impl<'a> HciEvent<'a> {

@@ -353,9 +353,18 @@ impl mio::Handler for BleScanner {
 						panic!("We just got readable, but were unable to read from the socket?");
 					}
 					Ok(Some(r)) => {
-						let e = bluetooth::HciPacket::from_bytes(&buf[0..r]);
-						println!("data: {:?}", buf[0..r].to_hex());
-						println!("    event: {:?}", e);
+						println!("data:   {:?}", buf[0..r].to_hex());
+						if let Some(p) = bluetooth::HciPacket::from_bytes(&buf[0..r]) {
+							println!("packet: {:?}", p);
+							match p {
+								bluetooth::HciPacket::Event(p) => {
+									if let Some(e) = p.to_event() {
+										println!("event:  {:?}", e);
+									}
+								},
+								_ => (),
+							}
+						}
 					}
 					Err(e) => {
 						match e.kind() {

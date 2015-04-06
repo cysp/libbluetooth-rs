@@ -10,7 +10,8 @@ mod hci;
 
 pub use hci::HciHandle;
 pub use hci::{HciOpcode,HciControllerOpcode,HciLeControllerOpcode};
-pub use hci::{HciPacket};
+pub use hci::HciPacket;
+pub use hci::{HciCommandPacket,HciEventPacket};
 
 
 #[derive(Copy)]
