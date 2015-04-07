@@ -3,11 +3,11 @@ use std::io::Write;
 
 use byteorder::{WriteBytesExt,LittleEndian};
 
-use super::opcode::{self,HciOpcode};
+use super::opcode;
 
 
 pub struct HciCommand {
-	opcode: opcode::HciOpcode,
+	opcode: opcode::Opcode,
 	parameter_data: Vec<u8>,
 }
 
@@ -40,12 +40,12 @@ pub trait HciCommandBuilding<T> {
 }
 
 pub struct HciCommandBuilder {
-	opcode: opcode::HciOpcode,
+	opcode: opcode::Opcode,
 	parameter_data: Vec<u8>,
 }
 
 impl HciCommandBuilder {
-	pub fn new(opcode: opcode::HciOpcode) -> HciCommandBuilder {
+	pub fn new(opcode: opcode::Opcode) -> HciCommandBuilder {
 		HciCommandBuilder {
 			opcode: opcode,
 			parameter_data: Vec::new(),

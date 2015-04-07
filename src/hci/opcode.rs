@@ -207,7 +207,7 @@ mod consts {
 
 
 #[derive(Clone,Copy,Debug,PartialEq,Eq)]
-pub enum HciOpcodeGroup {
+pub enum OpcodeGroup {
 	Nop,
 	LinkControl,
 	LinkPolicy,
@@ -220,126 +220,126 @@ pub enum HciOpcodeGroup {
 	Unknown(u16),
 }
 
-impl From<u16> for HciOpcodeGroup {
-	fn from(value: u16) -> HciOpcodeGroup {
+impl From<u16> for OpcodeGroup {
+	fn from(value: u16) -> OpcodeGroup {
 		match value >> 10 {
-			consts::nop::OGF => HciOpcodeGroup::Nop,
-			consts::link_control::OGF => HciOpcodeGroup::LinkControl,
-			consts::link_policy::OGF => HciOpcodeGroup::LinkPolicy,
-			consts::controller::OGF => HciOpcodeGroup::Controller,
-			consts::informational::OGF => HciOpcodeGroup::Informational,
-			consts::status_parameters::OGF => HciOpcodeGroup::StatusParameters,
-			consts::testing::OGF => HciOpcodeGroup::Testing,
-			consts::le_controller::OGF => HciOpcodeGroup::LeController,
-			consts::vendor::OGF => HciOpcodeGroup::Vendor,
-			unknown_value => HciOpcodeGroup::Unknown(unknown_value),
+			consts::nop::OGF => OpcodeGroup::Nop,
+			consts::link_control::OGF => OpcodeGroup::LinkControl,
+			consts::link_policy::OGF => OpcodeGroup::LinkPolicy,
+			consts::controller::OGF => OpcodeGroup::Controller,
+			consts::informational::OGF => OpcodeGroup::Informational,
+			consts::status_parameters::OGF => OpcodeGroup::StatusParameters,
+			consts::testing::OGF => OpcodeGroup::Testing,
+			consts::le_controller::OGF => OpcodeGroup::LeController,
+			consts::vendor::OGF => OpcodeGroup::Vendor,
+			unknown_ogf => OpcodeGroup::Unknown(unknown_ogf),
 		}
 	}
 }
 
 
 #[derive(Clone,Copy,Debug,PartialEq,Eq)]
-pub enum HciOpcode {
-	Nop(HciNopOpcode),
-	LinkControl(HciLinkControlOpcode),
-	LinkPolicy(HciLinkPolicyOpcode),
-	Controller(HciControllerOpcode),
-	Informational(HciInformationalOpcode),
-	StatusParameters(HciStatusParametersOpcode),
-	Testing(HciTestingOpcode),
-	LeController(HciLeControllerOpcode),
-	Vendor(HciVendorOpcode),
-	Unknown(u16),
+pub enum Opcode {
+	Nop(NopOpcode),
+	LinkControl(LinkControlOpcode),
+	LinkPolicy(LinkPolicyOpcode),
+	Controller(ControllerOpcode),
+	Informational(InformationalOpcode),
+	StatusParameters(StatusParametersOpcode),
+	Testing(TestingOpcode),
+	LeController(LeControllerOpcode),
+	Vendor(VendorOpcode),
+	Unknown(u16, u16),
 }
 
-impl HciOpcode {
-	pub fn from_readable(r: &mut std::io::Read) -> Option<HciOpcode> {
+impl Opcode {
+	pub fn from_readable(r: &mut std::io::Read) -> Option<Opcode> {
 		let opcode = match r.read_u16::<LittleEndian>() {
 			Ok(opcode) => opcode,
 			Err(e) => return None,
 		};
-		Some(HciOpcode::from(opcode))
+		Some(Opcode::from(opcode))
 	}
 }
 
-impl From<u16> for HciOpcode {
-	fn from(value: u16) -> HciOpcode {
+impl From<u16> for Opcode {
+	fn from(value: u16) -> Opcode {
 		let ocf = value & ((1 << 10) - 1);
-		match HciOpcodeGroup::from(value) {
-			HciOpcodeGroup::Nop => HciOpcode::Nop(HciNopOpcode::from_trusted_u16(ocf)),
-			HciOpcodeGroup::LinkControl => HciOpcode::LinkControl(HciLinkControlOpcode::from_trusted_u16(ocf)),
-			HciOpcodeGroup::LinkPolicy => HciOpcode::LinkPolicy(HciLinkPolicyOpcode::from_trusted_u16(ocf)),
-			HciOpcodeGroup::Controller => HciOpcode::Controller(HciControllerOpcode::from_trusted_u16(ocf)),
-			HciOpcodeGroup::Informational => HciOpcode::Informational(HciInformationalOpcode::from_trusted_u16(ocf)),
-			HciOpcodeGroup::StatusParameters => HciOpcode::StatusParameters(HciStatusParametersOpcode::from_trusted_u16(ocf)),
-			HciOpcodeGroup::Testing => HciOpcode::Testing(HciTestingOpcode::from_trusted_u16(ocf)),
-			HciOpcodeGroup::LeController => HciOpcode::LeController(HciLeControllerOpcode::from_trusted_u16(ocf)),
-			HciOpcodeGroup::Vendor => HciOpcode::Vendor(HciVendorOpcode::from_trusted_u16(ocf)),
-			HciOpcodeGroup::Unknown(value) => return HciOpcode::Unknown(value),
+		match OpcodeGroup::from(value) {
+			OpcodeGroup::Nop => Opcode::Nop(NopOpcode::from_trusted_u16(ocf)),
+			OpcodeGroup::LinkControl => Opcode::LinkControl(LinkControlOpcode::from_trusted_u16(ocf)),
+			OpcodeGroup::LinkPolicy => Opcode::LinkPolicy(LinkPolicyOpcode::from_trusted_u16(ocf)),
+			OpcodeGroup::Controller => Opcode::Controller(ControllerOpcode::from_trusted_u16(ocf)),
+			OpcodeGroup::Informational => Opcode::Informational(InformationalOpcode::from_trusted_u16(ocf)),
+			OpcodeGroup::StatusParameters => Opcode::StatusParameters(StatusParametersOpcode::from_trusted_u16(ocf)),
+			OpcodeGroup::Testing => Opcode::Testing(TestingOpcode::from_trusted_u16(ocf)),
+			OpcodeGroup::LeController => Opcode::LeController(LeControllerOpcode::from_trusted_u16(ocf)),
+			OpcodeGroup::Vendor => Opcode::Vendor(VendorOpcode::from_trusted_u16(ocf)),
+			OpcodeGroup::Unknown(ogf) => return Opcode::Unknown(ogf, ocf),
 		}
 	}
 }
 
-impl Into<u16> for HciOpcode {
+impl Into<u16> for Opcode {
 	fn into(self) -> u16 {
 		match self {
-			HciOpcode::Nop(opcode) => opcode.into(),
-			HciOpcode::LinkControl(opcode) => opcode.into(),
-			HciOpcode::LinkPolicy(opcode) => opcode.into(),
-			HciOpcode::Controller(opcode) => opcode.into(),
-			HciOpcode::Informational(opcode) => opcode.into(),
-			HciOpcode::StatusParameters(opcode) => opcode.into(),
-			HciOpcode::Testing(opcode) => opcode.into(),
-			HciOpcode::LeController(opcode) => opcode.into(),
-			HciOpcode::Vendor(opcode) => opcode.into(),
-			HciOpcode::Unknown(opcode) => opcode,
+			Opcode::Nop(opcode) => opcode.into(),
+			Opcode::LinkControl(opcode) => opcode.into(),
+			Opcode::LinkPolicy(opcode) => opcode.into(),
+			Opcode::Controller(opcode) => opcode.into(),
+			Opcode::Informational(opcode) => opcode.into(),
+			Opcode::StatusParameters(opcode) => opcode.into(),
+			Opcode::Testing(opcode) => opcode.into(),
+			Opcode::LeController(opcode) => opcode.into(),
+			Opcode::Vendor(opcode) => opcode.into(),
+			Opcode::Unknown(ogf, ocf) => (ogf << 10) | ocf,
 		}
 	}
 }
 
 
 #[derive(Clone,Copy,Debug,PartialEq,Eq)]
-pub enum HciNopOpcode {
+pub enum NopOpcode {
 	Nop,
 	Unknown(u16),
 }
 
-impl HciNopOpcode {
-	fn from_trusted_u16(value: u16) -> HciNopOpcode {
+impl NopOpcode {
+	fn from_trusted_u16(value: u16) -> NopOpcode {
 		match value & ((1 << 10) - 1) {
-			0 => HciNopOpcode::Nop,
-			value => HciNopOpcode::Unknown(value),
+			0 => NopOpcode::Nop,
+			value => NopOpcode::Unknown(value),
 		}
 	}
 }
 
-impl Into<u16> for HciNopOpcode {
+impl Into<u16> for NopOpcode {
 	fn into(self) -> u16 {
 		let ocf = match self {
-			HciNopOpcode::Nop => consts::nop::NOP,
-			HciNopOpcode::Unknown(ocf) => ocf,
+			NopOpcode::Nop => consts::nop::NOP,
+			NopOpcode::Unknown(ocf) => ocf,
 		} & ((1 << 10) - 1);
 		(consts::nop::OGF << 10) | ocf
 	}
 }
 
 #[derive(Clone,Copy,Debug,PartialEq,Eq)]
-pub enum HciLinkControlOpcode {
+pub enum LinkControlOpcode {
 	Unknown(u16),
 }
 
-impl HciLinkControlOpcode {
-	fn from_trusted_u16(value: u16) -> HciLinkControlOpcode {
+impl LinkControlOpcode {
+	fn from_trusted_u16(value: u16) -> LinkControlOpcode {
 		match value & ((1 << 10) - 1) {
-			value => HciLinkControlOpcode::Unknown(value),
+			value => LinkControlOpcode::Unknown(value),
 		}
 	}
 }
 
-impl Into<u16> for HciLinkControlOpcode {
+impl Into<u16> for LinkControlOpcode {
 	fn into(self) -> u16 {
 		let ocf = match self {
-			HciLinkControlOpcode::Unknown(ocf) => ocf,
+			LinkControlOpcode::Unknown(ocf) => ocf,
 		} & ((1 << 10) - 1);
 		(consts::link_control::OGF << 10) | ocf
 	}
@@ -347,7 +347,7 @@ impl Into<u16> for HciLinkControlOpcode {
 
 
 #[derive(Clone,Copy,Debug,PartialEq,Eq)]
-pub enum HciLinkPolicyOpcode {
+pub enum LinkPolicyOpcode {
 	HoldMode,
 	SniffMode,
 	ExitSniffMode,
@@ -365,46 +365,46 @@ pub enum HciLinkPolicyOpcode {
 	Unknown(u16),
 }
 
-impl HciLinkPolicyOpcode {
-	fn from_trusted_u16(value: u16) -> HciLinkPolicyOpcode {
+impl LinkPolicyOpcode {
+	fn from_trusted_u16(value: u16) -> LinkPolicyOpcode {
 		match value & ((1 << 10) - 1) {
-			consts::link_policy::HOLD_MODE => HciLinkPolicyOpcode::HoldMode,
-			consts::link_policy::SNIFF_MODE => HciLinkPolicyOpcode::SniffMode,
-			consts::link_policy::EXIT_SNIFF_MODE => HciLinkPolicyOpcode::ExitSniffMode,
-			consts::link_policy::PARK_STATE => HciLinkPolicyOpcode::ParkState,
-			consts::link_policy::EXIT_PARK_STATE => HciLinkPolicyOpcode::ExitParkState,
-			consts::link_policy::QOS_SETUP => HciLinkPolicyOpcode::QosSetup,
-			consts::link_policy::ROLE_DISCOVERY => HciLinkPolicyOpcode::RoleDiscovery,
-			consts::link_policy::SWITCH_ROLE => HciLinkPolicyOpcode::SwitchRole,
-			consts::link_policy::READ_LINK_POLICY_SETTINGS => HciLinkPolicyOpcode::ReadLinkPolicySettings,
-			consts::link_policy::WRITE_LINK_POLICY_SETTINGS => HciLinkPolicyOpcode::WriteLinkPolicySettings,
-			consts::link_policy::READ_DEFAULT_LINK_POLICY_SETTINGS => HciLinkPolicyOpcode::ReadDefaultLinkPolicySettings,
-			consts::link_policy::WRITE_DEFAULT_LINK_POLICY_SETTINGS => HciLinkPolicyOpcode::WriteDefaultLinkPolicySettings,
-			consts::link_policy::FLOW_SPECIFICATION => HciLinkPolicyOpcode::FlowSpecification,
-			consts::link_policy::SNIFF_SUBRATING => HciLinkPolicyOpcode::SniffSubrating,
-			value => HciLinkPolicyOpcode::Unknown(value),
+			consts::link_policy::HOLD_MODE => LinkPolicyOpcode::HoldMode,
+			consts::link_policy::SNIFF_MODE => LinkPolicyOpcode::SniffMode,
+			consts::link_policy::EXIT_SNIFF_MODE => LinkPolicyOpcode::ExitSniffMode,
+			consts::link_policy::PARK_STATE => LinkPolicyOpcode::ParkState,
+			consts::link_policy::EXIT_PARK_STATE => LinkPolicyOpcode::ExitParkState,
+			consts::link_policy::QOS_SETUP => LinkPolicyOpcode::QosSetup,
+			consts::link_policy::ROLE_DISCOVERY => LinkPolicyOpcode::RoleDiscovery,
+			consts::link_policy::SWITCH_ROLE => LinkPolicyOpcode::SwitchRole,
+			consts::link_policy::READ_LINK_POLICY_SETTINGS => LinkPolicyOpcode::ReadLinkPolicySettings,
+			consts::link_policy::WRITE_LINK_POLICY_SETTINGS => LinkPolicyOpcode::WriteLinkPolicySettings,
+			consts::link_policy::READ_DEFAULT_LINK_POLICY_SETTINGS => LinkPolicyOpcode::ReadDefaultLinkPolicySettings,
+			consts::link_policy::WRITE_DEFAULT_LINK_POLICY_SETTINGS => LinkPolicyOpcode::WriteDefaultLinkPolicySettings,
+			consts::link_policy::FLOW_SPECIFICATION => LinkPolicyOpcode::FlowSpecification,
+			consts::link_policy::SNIFF_SUBRATING => LinkPolicyOpcode::SniffSubrating,
+			value => LinkPolicyOpcode::Unknown(value),
 		}
 	}
 }
 
-impl Into<u16> for HciLinkPolicyOpcode {
+impl Into<u16> for LinkPolicyOpcode {
 	fn into(self) -> u16 {
 		let ocf = match self {
-			HciLinkPolicyOpcode::HoldMode => consts::link_policy::HOLD_MODE,
-			HciLinkPolicyOpcode::SniffMode => consts::link_policy::SNIFF_MODE,
-			HciLinkPolicyOpcode::ExitSniffMode => consts::link_policy::EXIT_SNIFF_MODE,
-			HciLinkPolicyOpcode::ParkState => consts::link_policy::PARK_STATE,
-			HciLinkPolicyOpcode::ExitParkState => consts::link_policy::EXIT_PARK_STATE,
-			HciLinkPolicyOpcode::QosSetup => consts::link_policy::QOS_SETUP,
-			HciLinkPolicyOpcode::RoleDiscovery => consts::link_policy::ROLE_DISCOVERY,
-			HciLinkPolicyOpcode::SwitchRole => consts::link_policy::SWITCH_ROLE,
-			HciLinkPolicyOpcode::ReadLinkPolicySettings => consts::link_policy::READ_LINK_POLICY_SETTINGS,
-			HciLinkPolicyOpcode::WriteLinkPolicySettings => consts::link_policy::WRITE_LINK_POLICY_SETTINGS,
-			HciLinkPolicyOpcode::ReadDefaultLinkPolicySettings => consts::link_policy::READ_DEFAULT_LINK_POLICY_SETTINGS,
-			HciLinkPolicyOpcode::WriteDefaultLinkPolicySettings => consts::link_policy::WRITE_DEFAULT_LINK_POLICY_SETTINGS,
-			HciLinkPolicyOpcode::FlowSpecification => consts::link_policy::FLOW_SPECIFICATION,
-			HciLinkPolicyOpcode::SniffSubrating => consts::link_policy::SNIFF_SUBRATING,
-			HciLinkPolicyOpcode::Unknown(ocf) => ocf,
+			LinkPolicyOpcode::HoldMode => consts::link_policy::HOLD_MODE,
+			LinkPolicyOpcode::SniffMode => consts::link_policy::SNIFF_MODE,
+			LinkPolicyOpcode::ExitSniffMode => consts::link_policy::EXIT_SNIFF_MODE,
+			LinkPolicyOpcode::ParkState => consts::link_policy::PARK_STATE,
+			LinkPolicyOpcode::ExitParkState => consts::link_policy::EXIT_PARK_STATE,
+			LinkPolicyOpcode::QosSetup => consts::link_policy::QOS_SETUP,
+			LinkPolicyOpcode::RoleDiscovery => consts::link_policy::ROLE_DISCOVERY,
+			LinkPolicyOpcode::SwitchRole => consts::link_policy::SWITCH_ROLE,
+			LinkPolicyOpcode::ReadLinkPolicySettings => consts::link_policy::READ_LINK_POLICY_SETTINGS,
+			LinkPolicyOpcode::WriteLinkPolicySettings => consts::link_policy::WRITE_LINK_POLICY_SETTINGS,
+			LinkPolicyOpcode::ReadDefaultLinkPolicySettings => consts::link_policy::READ_DEFAULT_LINK_POLICY_SETTINGS,
+			LinkPolicyOpcode::WriteDefaultLinkPolicySettings => consts::link_policy::WRITE_DEFAULT_LINK_POLICY_SETTINGS,
+			LinkPolicyOpcode::FlowSpecification => consts::link_policy::FLOW_SPECIFICATION,
+			LinkPolicyOpcode::SniffSubrating => consts::link_policy::SNIFF_SUBRATING,
+			LinkPolicyOpcode::Unknown(ocf) => ocf,
 		} & ((1 << 10) - 1);
 		(consts::link_policy::OGF << 10) | ocf
 	}
@@ -412,7 +412,7 @@ impl Into<u16> for HciLinkPolicyOpcode {
 
 
 #[derive(Clone,Copy,Debug,PartialEq,Eq)]
-pub enum HciControllerOpcode {
+pub enum ControllerOpcode {
 	SetEventMask,
 	Reset,
 	SetEventFilter,
@@ -458,198 +458,198 @@ pub enum HciControllerOpcode {
 	Unknown(u16),
 }
 
-impl HciControllerOpcode {
-	fn from_trusted_u16(value: u16) -> HciControllerOpcode {
+impl ControllerOpcode {
+	fn from_trusted_u16(value: u16) -> ControllerOpcode {
 		match value & ((1 << 10) - 1) {
-			consts::controller::SET_EVENT_MASK => HciControllerOpcode::SetEventMask,
-			consts::controller::RESET => HciControllerOpcode::Reset,
-			consts::controller::SET_EVENT_FILTER => HciControllerOpcode::SetEventFilter,
-			consts::controller::FLUSH => HciControllerOpcode::Flush,
-			consts::controller::READ_PIN_TYPE => HciControllerOpcode::ReadPINType,
-			consts::controller::WRITE_PIN_TYPE => HciControllerOpcode::WritePINType,
-			consts::controller::CREATE_NEW_UNIT_KEY => HciControllerOpcode::CreateNewUnitKey,
-			consts::controller::READ_STORED_LINK_KEY => HciControllerOpcode::ReadStoredLinkKey,
-			consts::controller::WRITE_STORED_LINK_KEY => HciControllerOpcode::WriteStoredLinkKey,
-			consts::controller::DELETE_STORED_LINK_KEY => HciControllerOpcode::DeleteStoredLinkKey,
-			consts::controller::WRITE_LOCAL_NAME => HciControllerOpcode::WriteLocalName,
-			consts::controller::READ_LOCAL_NAME => HciControllerOpcode::ReadLocalName,
-			consts::controller::READ_CONNECTION_ACCEPT_TIMEOUT => HciControllerOpcode::ReadConnectionAcceptTimeout,
-			consts::controller::WRITE_CONNECTION_ACCEPT_TIMEOUT => HciControllerOpcode::WriteConnectionAcceptTimeout,
-			consts::controller::READ_SCAN_ENABLE => HciControllerOpcode::ReadScanEnable,
-			consts::controller::WRITE_SCAN_ENABLE => HciControllerOpcode::WriteScanEnable,
-			consts::controller::READ_PAGE_SCAN_ACTIVITY => HciControllerOpcode::ReadPageScanActivity,
-			consts::controller::WRITE_PAGE_SCAN_ACTIVITY => HciControllerOpcode::WritePageScanActivity,
-			consts::controller::READ_INQUIRY_SCAN_ACTIVITY => HciControllerOpcode::ReadInquiryScanActivity,
-			consts::controller::WRITE_INQUIRY_SCAN_ACTIVITY => HciControllerOpcode::WriteInquiryScanActivity,
-			consts::controller::READ_CLASS_OF_DEVICE => HciControllerOpcode::ReadClassOfDevice,
-			consts::controller::WRITE_CLASS_OF_DEVICE => HciControllerOpcode::WriteClassOfDevice,
-			consts::controller::READ_VOICE_SETTING => HciControllerOpcode::ReadVoiceSetting,
-			consts::controller::WRITE_VOICE_SETTING => HciControllerOpcode::WriteVoiceSetting,
-			consts::controller::READ_NUMBER_OF_SUPPORTED_IAC => HciControllerOpcode::ReadNumberOfSupportedIac,
-			consts::controller::READ_CURRENT_IAC_LAP => HciControllerOpcode::ReadCurrentIacLap,
-			consts::controller::READ_INQUIRY_SCAN_TYPE => HciControllerOpcode::ReadInquiryScanType,
-			consts::controller::WRITE_INQUIRY_SCAN_TYPE => HciControllerOpcode::WriteInquiryScanType,
-			consts::controller::READ_INQUIRY_MODE => HciControllerOpcode::ReadInquiryMode,
-			consts::controller::WRITE_INQUIRY_MODE => HciControllerOpcode::WriteInquiryMode,
-			consts::controller::READ_PAGE_SCAN_TYPE => HciControllerOpcode::ReadPageScanType,
-			consts::controller::WRITE_PAGE_SCAN_TYPE => HciControllerOpcode::WritePageScanType,
-			consts::controller::READ_AFH_CHANNEL_ASSESSMENT_MODE => HciControllerOpcode::ReadAfhChannelAssessmentMode,
-			consts::controller::WRITE_AFH_CHANNEL_ASSESSMENT_MODE => HciControllerOpcode::WriteAfhChannelAssessmentMode,
-			consts::controller::READ_EXTENDED_INQUIRY_RESPONSE => HciControllerOpcode::ReadExtendedInquiryResponse,
-			consts::controller::WRITE_EXTENDED_INQUIRY_RESPONSE => HciControllerOpcode::WriteExtendedInquiryResponse,
-			consts::controller::REFRESH_ENCRYPTION_KEY => HciControllerOpcode::RefreshEncryptionKey,
-			consts::controller::READ_SIMPLE_PAIRING_MODE => HciControllerOpcode::ReadSimplePairingMode,
-			consts::controller::WRITE_SIMPLE_PAIRING_MODE => HciControllerOpcode::WriteSimplePairingMode,
-			consts::controller::READ_LOCAL_OOB_DATA => HciControllerOpcode::ReadLocalOobData,
-			consts::controller::READ_INQUIRY_RESPONSE_TRANSMIT_POWER_LEVEL => HciControllerOpcode::ReadInquiryResponseTransmitPowerLevel,
-			consts::controller::WRITE_INQUIRY_RESPONSE_TRANSMIT_POWER_LEVEL => HciControllerOpcode::WriteInquiryResponseTransmitPowerLevel,
-			value => HciControllerOpcode::Unknown(value),
+			consts::controller::SET_EVENT_MASK => ControllerOpcode::SetEventMask,
+			consts::controller::RESET => ControllerOpcode::Reset,
+			consts::controller::SET_EVENT_FILTER => ControllerOpcode::SetEventFilter,
+			consts::controller::FLUSH => ControllerOpcode::Flush,
+			consts::controller::READ_PIN_TYPE => ControllerOpcode::ReadPINType,
+			consts::controller::WRITE_PIN_TYPE => ControllerOpcode::WritePINType,
+			consts::controller::CREATE_NEW_UNIT_KEY => ControllerOpcode::CreateNewUnitKey,
+			consts::controller::READ_STORED_LINK_KEY => ControllerOpcode::ReadStoredLinkKey,
+			consts::controller::WRITE_STORED_LINK_KEY => ControllerOpcode::WriteStoredLinkKey,
+			consts::controller::DELETE_STORED_LINK_KEY => ControllerOpcode::DeleteStoredLinkKey,
+			consts::controller::WRITE_LOCAL_NAME => ControllerOpcode::WriteLocalName,
+			consts::controller::READ_LOCAL_NAME => ControllerOpcode::ReadLocalName,
+			consts::controller::READ_CONNECTION_ACCEPT_TIMEOUT => ControllerOpcode::ReadConnectionAcceptTimeout,
+			consts::controller::WRITE_CONNECTION_ACCEPT_TIMEOUT => ControllerOpcode::WriteConnectionAcceptTimeout,
+			consts::controller::READ_SCAN_ENABLE => ControllerOpcode::ReadScanEnable,
+			consts::controller::WRITE_SCAN_ENABLE => ControllerOpcode::WriteScanEnable,
+			consts::controller::READ_PAGE_SCAN_ACTIVITY => ControllerOpcode::ReadPageScanActivity,
+			consts::controller::WRITE_PAGE_SCAN_ACTIVITY => ControllerOpcode::WritePageScanActivity,
+			consts::controller::READ_INQUIRY_SCAN_ACTIVITY => ControllerOpcode::ReadInquiryScanActivity,
+			consts::controller::WRITE_INQUIRY_SCAN_ACTIVITY => ControllerOpcode::WriteInquiryScanActivity,
+			consts::controller::READ_CLASS_OF_DEVICE => ControllerOpcode::ReadClassOfDevice,
+			consts::controller::WRITE_CLASS_OF_DEVICE => ControllerOpcode::WriteClassOfDevice,
+			consts::controller::READ_VOICE_SETTING => ControllerOpcode::ReadVoiceSetting,
+			consts::controller::WRITE_VOICE_SETTING => ControllerOpcode::WriteVoiceSetting,
+			consts::controller::READ_NUMBER_OF_SUPPORTED_IAC => ControllerOpcode::ReadNumberOfSupportedIac,
+			consts::controller::READ_CURRENT_IAC_LAP => ControllerOpcode::ReadCurrentIacLap,
+			consts::controller::READ_INQUIRY_SCAN_TYPE => ControllerOpcode::ReadInquiryScanType,
+			consts::controller::WRITE_INQUIRY_SCAN_TYPE => ControllerOpcode::WriteInquiryScanType,
+			consts::controller::READ_INQUIRY_MODE => ControllerOpcode::ReadInquiryMode,
+			consts::controller::WRITE_INQUIRY_MODE => ControllerOpcode::WriteInquiryMode,
+			consts::controller::READ_PAGE_SCAN_TYPE => ControllerOpcode::ReadPageScanType,
+			consts::controller::WRITE_PAGE_SCAN_TYPE => ControllerOpcode::WritePageScanType,
+			consts::controller::READ_AFH_CHANNEL_ASSESSMENT_MODE => ControllerOpcode::ReadAfhChannelAssessmentMode,
+			consts::controller::WRITE_AFH_CHANNEL_ASSESSMENT_MODE => ControllerOpcode::WriteAfhChannelAssessmentMode,
+			consts::controller::READ_EXTENDED_INQUIRY_RESPONSE => ControllerOpcode::ReadExtendedInquiryResponse,
+			consts::controller::WRITE_EXTENDED_INQUIRY_RESPONSE => ControllerOpcode::WriteExtendedInquiryResponse,
+			consts::controller::REFRESH_ENCRYPTION_KEY => ControllerOpcode::RefreshEncryptionKey,
+			consts::controller::READ_SIMPLE_PAIRING_MODE => ControllerOpcode::ReadSimplePairingMode,
+			consts::controller::WRITE_SIMPLE_PAIRING_MODE => ControllerOpcode::WriteSimplePairingMode,
+			consts::controller::READ_LOCAL_OOB_DATA => ControllerOpcode::ReadLocalOobData,
+			consts::controller::READ_INQUIRY_RESPONSE_TRANSMIT_POWER_LEVEL => ControllerOpcode::ReadInquiryResponseTransmitPowerLevel,
+			consts::controller::WRITE_INQUIRY_RESPONSE_TRANSMIT_POWER_LEVEL => ControllerOpcode::WriteInquiryResponseTransmitPowerLevel,
+			value => ControllerOpcode::Unknown(value),
 		}
 	}
 }
 
-impl Into<u16> for HciControllerOpcode {
+impl Into<u16> for ControllerOpcode {
 	fn into(self) -> u16 {
 		let ocf = match self {
-			HciControllerOpcode::SetEventMask => consts::controller::SET_EVENT_MASK,
-			HciControllerOpcode::Reset => consts::controller::RESET,
-			HciControllerOpcode::SetEventFilter => consts::controller::SET_EVENT_FILTER,
-			HciControllerOpcode::Flush => consts::controller::FLUSH,
-			HciControllerOpcode::ReadPINType => consts::controller::READ_PIN_TYPE,
-			HciControllerOpcode::WritePINType => consts::controller::WRITE_PIN_TYPE,
-			HciControllerOpcode::CreateNewUnitKey => consts::controller::CREATE_NEW_UNIT_KEY,
-			HciControllerOpcode::ReadStoredLinkKey => consts::controller::READ_STORED_LINK_KEY,
-			HciControllerOpcode::WriteStoredLinkKey => consts::controller::WRITE_STORED_LINK_KEY,
-			HciControllerOpcode::DeleteStoredLinkKey => consts::controller::DELETE_STORED_LINK_KEY,
-			HciControllerOpcode::WriteLocalName => consts::controller::WRITE_LOCAL_NAME,
-			HciControllerOpcode::ReadLocalName => consts::controller::READ_LOCAL_NAME,
-			HciControllerOpcode::ReadConnectionAcceptTimeout => consts::controller::READ_CONNECTION_ACCEPT_TIMEOUT,
-			HciControllerOpcode::WriteConnectionAcceptTimeout => consts::controller::WRITE_CONNECTION_ACCEPT_TIMEOUT,
-			HciControllerOpcode::ReadScanEnable => consts::controller::READ_SCAN_ENABLE,
-			HciControllerOpcode::WriteScanEnable => consts::controller::WRITE_SCAN_ENABLE,
-			HciControllerOpcode::ReadPageScanActivity => consts::controller::READ_PAGE_SCAN_ACTIVITY,
-			HciControllerOpcode::WritePageScanActivity => consts::controller::WRITE_PAGE_SCAN_ACTIVITY,
-			HciControllerOpcode::ReadInquiryScanActivity => consts::controller::READ_INQUIRY_SCAN_ACTIVITY,
-			HciControllerOpcode::WriteInquiryScanActivity => consts::controller::WRITE_INQUIRY_SCAN_ACTIVITY,
-			HciControllerOpcode::ReadClassOfDevice => consts::controller::READ_CLASS_OF_DEVICE,
-			HciControllerOpcode::WriteClassOfDevice => consts::controller::WRITE_CLASS_OF_DEVICE,
-			HciControllerOpcode::ReadVoiceSetting => consts::controller::READ_VOICE_SETTING,
-			HciControllerOpcode::WriteVoiceSetting => consts::controller::WRITE_VOICE_SETTING,
-			HciControllerOpcode::ReadNumberOfSupportedIac => consts::controller::READ_NUMBER_OF_SUPPORTED_IAC,
-			HciControllerOpcode::ReadCurrentIacLap => consts::controller::READ_CURRENT_IAC_LAP,
-			HciControllerOpcode::ReadInquiryScanType => consts::controller::READ_INQUIRY_SCAN_TYPE,
-			HciControllerOpcode::WriteInquiryScanType => consts::controller::WRITE_INQUIRY_SCAN_TYPE,
-			HciControllerOpcode::ReadInquiryMode => consts::controller::READ_INQUIRY_MODE,
-			HciControllerOpcode::WriteInquiryMode => consts::controller::WRITE_INQUIRY_MODE,
-			HciControllerOpcode::ReadPageScanType => consts::controller::READ_PAGE_SCAN_TYPE,
-			HciControllerOpcode::WritePageScanType => consts::controller::WRITE_PAGE_SCAN_TYPE,
-			HciControllerOpcode::ReadAfhChannelAssessmentMode => consts::controller::READ_AFH_CHANNEL_ASSESSMENT_MODE,
-			HciControllerOpcode::WriteAfhChannelAssessmentMode => consts::controller::WRITE_AFH_CHANNEL_ASSESSMENT_MODE,
-			HciControllerOpcode::ReadExtendedInquiryResponse => consts::controller::READ_EXTENDED_INQUIRY_RESPONSE,
-			HciControllerOpcode::WriteExtendedInquiryResponse => consts::controller::WRITE_EXTENDED_INQUIRY_RESPONSE,
-			HciControllerOpcode::RefreshEncryptionKey => consts::controller::REFRESH_ENCRYPTION_KEY,
-			HciControllerOpcode::ReadSimplePairingMode => consts::controller::READ_SIMPLE_PAIRING_MODE,
-			HciControllerOpcode::WriteSimplePairingMode => consts::controller::WRITE_SIMPLE_PAIRING_MODE,
-			HciControllerOpcode::ReadLocalOobData => consts::controller::READ_LOCAL_OOB_DATA,
-			HciControllerOpcode::ReadInquiryResponseTransmitPowerLevel => consts::controller::READ_INQUIRY_RESPONSE_TRANSMIT_POWER_LEVEL,
-			HciControllerOpcode::WriteInquiryResponseTransmitPowerLevel => consts::controller::WRITE_INQUIRY_RESPONSE_TRANSMIT_POWER_LEVEL,
-			HciControllerOpcode::Unknown(ocf) => ocf,
+			ControllerOpcode::SetEventMask => consts::controller::SET_EVENT_MASK,
+			ControllerOpcode::Reset => consts::controller::RESET,
+			ControllerOpcode::SetEventFilter => consts::controller::SET_EVENT_FILTER,
+			ControllerOpcode::Flush => consts::controller::FLUSH,
+			ControllerOpcode::ReadPINType => consts::controller::READ_PIN_TYPE,
+			ControllerOpcode::WritePINType => consts::controller::WRITE_PIN_TYPE,
+			ControllerOpcode::CreateNewUnitKey => consts::controller::CREATE_NEW_UNIT_KEY,
+			ControllerOpcode::ReadStoredLinkKey => consts::controller::READ_STORED_LINK_KEY,
+			ControllerOpcode::WriteStoredLinkKey => consts::controller::WRITE_STORED_LINK_KEY,
+			ControllerOpcode::DeleteStoredLinkKey => consts::controller::DELETE_STORED_LINK_KEY,
+			ControllerOpcode::WriteLocalName => consts::controller::WRITE_LOCAL_NAME,
+			ControllerOpcode::ReadLocalName => consts::controller::READ_LOCAL_NAME,
+			ControllerOpcode::ReadConnectionAcceptTimeout => consts::controller::READ_CONNECTION_ACCEPT_TIMEOUT,
+			ControllerOpcode::WriteConnectionAcceptTimeout => consts::controller::WRITE_CONNECTION_ACCEPT_TIMEOUT,
+			ControllerOpcode::ReadScanEnable => consts::controller::READ_SCAN_ENABLE,
+			ControllerOpcode::WriteScanEnable => consts::controller::WRITE_SCAN_ENABLE,
+			ControllerOpcode::ReadPageScanActivity => consts::controller::READ_PAGE_SCAN_ACTIVITY,
+			ControllerOpcode::WritePageScanActivity => consts::controller::WRITE_PAGE_SCAN_ACTIVITY,
+			ControllerOpcode::ReadInquiryScanActivity => consts::controller::READ_INQUIRY_SCAN_ACTIVITY,
+			ControllerOpcode::WriteInquiryScanActivity => consts::controller::WRITE_INQUIRY_SCAN_ACTIVITY,
+			ControllerOpcode::ReadClassOfDevice => consts::controller::READ_CLASS_OF_DEVICE,
+			ControllerOpcode::WriteClassOfDevice => consts::controller::WRITE_CLASS_OF_DEVICE,
+			ControllerOpcode::ReadVoiceSetting => consts::controller::READ_VOICE_SETTING,
+			ControllerOpcode::WriteVoiceSetting => consts::controller::WRITE_VOICE_SETTING,
+			ControllerOpcode::ReadNumberOfSupportedIac => consts::controller::READ_NUMBER_OF_SUPPORTED_IAC,
+			ControllerOpcode::ReadCurrentIacLap => consts::controller::READ_CURRENT_IAC_LAP,
+			ControllerOpcode::ReadInquiryScanType => consts::controller::READ_INQUIRY_SCAN_TYPE,
+			ControllerOpcode::WriteInquiryScanType => consts::controller::WRITE_INQUIRY_SCAN_TYPE,
+			ControllerOpcode::ReadInquiryMode => consts::controller::READ_INQUIRY_MODE,
+			ControllerOpcode::WriteInquiryMode => consts::controller::WRITE_INQUIRY_MODE,
+			ControllerOpcode::ReadPageScanType => consts::controller::READ_PAGE_SCAN_TYPE,
+			ControllerOpcode::WritePageScanType => consts::controller::WRITE_PAGE_SCAN_TYPE,
+			ControllerOpcode::ReadAfhChannelAssessmentMode => consts::controller::READ_AFH_CHANNEL_ASSESSMENT_MODE,
+			ControllerOpcode::WriteAfhChannelAssessmentMode => consts::controller::WRITE_AFH_CHANNEL_ASSESSMENT_MODE,
+			ControllerOpcode::ReadExtendedInquiryResponse => consts::controller::READ_EXTENDED_INQUIRY_RESPONSE,
+			ControllerOpcode::WriteExtendedInquiryResponse => consts::controller::WRITE_EXTENDED_INQUIRY_RESPONSE,
+			ControllerOpcode::RefreshEncryptionKey => consts::controller::REFRESH_ENCRYPTION_KEY,
+			ControllerOpcode::ReadSimplePairingMode => consts::controller::READ_SIMPLE_PAIRING_MODE,
+			ControllerOpcode::WriteSimplePairingMode => consts::controller::WRITE_SIMPLE_PAIRING_MODE,
+			ControllerOpcode::ReadLocalOobData => consts::controller::READ_LOCAL_OOB_DATA,
+			ControllerOpcode::ReadInquiryResponseTransmitPowerLevel => consts::controller::READ_INQUIRY_RESPONSE_TRANSMIT_POWER_LEVEL,
+			ControllerOpcode::WriteInquiryResponseTransmitPowerLevel => consts::controller::WRITE_INQUIRY_RESPONSE_TRANSMIT_POWER_LEVEL,
+			ControllerOpcode::Unknown(ocf) => ocf,
 		} & ((1 << 10) - 1);
 		(consts::controller::OGF << 10) | ocf
 	}
 }
 
 #[cfg(test)]
-mod hcicontrolleropcode_tests {
+mod controlleropcode_tests {
 	use super::*;
 
 	#[test]
-	fn test_hcicontrolleropcode_seteventmask() {
+	fn test_controlleropcode_seteventmask() {
 		{
-			let oc: u16 = HciOpcode::Controller(HciControllerOpcode::SetEventMask).into();
+			let oc: u16 = Opcode::Controller(ControllerOpcode::SetEventMask).into();
 			assert_eq!(oc, 0x0C01);
-			let oc: u16 = HciControllerOpcode::SetEventMask.into();
+			let oc: u16 = ControllerOpcode::SetEventMask.into();
 			assert_eq!(oc, 0x0C01);
-			let oc = HciOpcode::from(oc);
-			assert_eq!(oc, HciOpcode::Controller(HciControllerOpcode::SetEventMask));
+			let oc = Opcode::from(oc);
+			assert_eq!(oc, Opcode::Controller(ControllerOpcode::SetEventMask));
 		}
 	}
 
 	#[test]
-	fn test_hcicontrolleropcode_reset() {
+	fn test_controlleropcode_reset() {
 		{
-			let oc: u16 = HciOpcode::Controller(HciControllerOpcode::Reset).into();
+			let oc: u16 = Opcode::Controller(ControllerOpcode::Reset).into();
 			assert_eq!(oc, 0x0C03);
-			let oc: u16 = HciControllerOpcode::Reset.into();
+			let oc: u16 = ControllerOpcode::Reset.into();
 			assert_eq!(oc, 0x0C03);
-			let oc = HciOpcode::from(oc);
-			assert_eq!(oc, HciOpcode::Controller(HciControllerOpcode::Reset));
+			let oc = Opcode::from(oc);
+			assert_eq!(oc, Opcode::Controller(ControllerOpcode::Reset));
 		}
 	}
 
 	#[test]
-	fn test_hcicontrolleropcode_seteventfilter() {
+	fn test_controlleropcode_seteventfilter() {
 		{
-			let oc: u16 = HciOpcode::Controller(HciControllerOpcode::SetEventFilter).into();
+			let oc: u16 = Opcode::Controller(ControllerOpcode::SetEventFilter).into();
 			assert_eq!(oc, 0x0C05);
-			let oc: u16 = HciControllerOpcode::SetEventFilter.into();
+			let oc: u16 = ControllerOpcode::SetEventFilter.into();
 			assert_eq!(oc, 0x0C05);
-			let oc = HciOpcode::from(oc);
-			assert_eq!(oc, HciOpcode::Controller(HciControllerOpcode::SetEventFilter));
+			let oc = Opcode::from(oc);
+			assert_eq!(oc, Opcode::Controller(ControllerOpcode::SetEventFilter));
 		}
 	}
 
 	#[test]
-	fn test_hcicontrolleropcode_flush() {
+	fn test_controlleropcode_flush() {
 		{
-			let oc: u16 = HciOpcode::Controller(HciControllerOpcode::Flush).into();
+			let oc: u16 = Opcode::Controller(ControllerOpcode::Flush).into();
 			assert_eq!(oc, 0x0C08);
-			let oc: u16 = HciControllerOpcode::Flush.into();
+			let oc: u16 = ControllerOpcode::Flush.into();
 			assert_eq!(oc, 0x0C08);
-			let oc = HciOpcode::from(oc);
-			assert_eq!(oc, HciOpcode::Controller(HciControllerOpcode::Flush));
+			let oc = Opcode::from(oc);
+			assert_eq!(oc, Opcode::Controller(ControllerOpcode::Flush));
 		}
 	}
 
 	#[test]
-	fn test_hcicontrolleropcode_readpintype() {
+	fn test_controlleropcode_readpintype() {
 		{
-			let oc: u16 = HciOpcode::Controller(HciControllerOpcode::ReadPINType).into();
+			let oc: u16 = Opcode::Controller(ControllerOpcode::ReadPINType).into();
 			assert_eq!(oc, 0x0C09);
-			let oc: u16 = HciControllerOpcode::ReadPINType.into();
+			let oc: u16 = ControllerOpcode::ReadPINType.into();
 			assert_eq!(oc, 0x0C09);
-			let oc = HciOpcode::from(oc);
-			assert_eq!(oc, HciOpcode::Controller(HciControllerOpcode::ReadPINType));
+			let oc = Opcode::from(oc);
+			assert_eq!(oc, Opcode::Controller(ControllerOpcode::ReadPINType));
 		}
 	}
 
 	#[test]
-	fn test_hcicontrolleropcode_writepintype() {
+	fn test_controlleropcode_writepintype() {
 		{
-			let oc: u16 = HciOpcode::Controller(HciControllerOpcode::WritePINType).into();
+			let oc: u16 = Opcode::Controller(ControllerOpcode::WritePINType).into();
 			assert_eq!(oc, 0x0C0A);
-			let oc: u16 = HciControllerOpcode::WritePINType.into();
+			let oc: u16 = ControllerOpcode::WritePINType.into();
 			assert_eq!(oc, 0x0C0A);
-			let oc = HciOpcode::from(oc);
-			assert_eq!(oc, HciOpcode::Controller(HciControllerOpcode::WritePINType));
+			let oc = Opcode::from(oc);
+			assert_eq!(oc, Opcode::Controller(ControllerOpcode::WritePINType));
 		}
 	}
 
 	#[test]
-	fn test_hcicontrolleropcode_unknown() {
+	fn test_controlleropcode_unknown() {
 		{
-			let oc: u16 = HciOpcode::Controller(HciControllerOpcode::Unknown(0x67)).into();
+			let oc: u16 = Opcode::Controller(ControllerOpcode::Unknown(0x67)).into();
 			assert_eq!(oc, 0x0C67);
-			let oc: u16 = HciControllerOpcode::Unknown(0x67).into();
+			let oc: u16 = ControllerOpcode::Unknown(0x67).into();
 			assert_eq!(oc, 0x0C67);
-			let oc = HciOpcode::from(oc);
-			assert_eq!(oc, HciOpcode::Controller(HciControllerOpcode::Unknown(0x67)));
+			let oc = Opcode::from(oc);
+			assert_eq!(oc, Opcode::Controller(ControllerOpcode::Unknown(0x67)));
 		}
 	}
 }
 
 #[derive(Clone,Copy,Debug,PartialEq,Eq)]
-pub enum HciInformationalOpcode {
+pub enum InformationalOpcode {
 	ReadLocalVersionInformation,
 	ReadLocalSupportedCommands,
 	ReadLocalSupportedFeatures,
@@ -660,136 +660,136 @@ pub enum HciInformationalOpcode {
 	Unknown(u16),
 }
 
-impl HciInformationalOpcode {
-	fn from_trusted_u16(value: u16) -> HciInformationalOpcode {
+impl InformationalOpcode {
+	fn from_trusted_u16(value: u16) -> InformationalOpcode {
 		match value & ((1 << 10) - 1) {
-			consts::informational::READ_LOCAL_VERSION_INFORMATION => HciInformationalOpcode::ReadLocalVersionInformation,
-			consts::informational::READ_LOCAL_SUPPORTED_COMMANDS => HciInformationalOpcode::ReadLocalSupportedCommands,
-			consts::informational::READ_LOCAL_SUPPORTED_FEATURES => HciInformationalOpcode::ReadLocalSupportedFeatures,
-			consts::informational::READ_LOCAL_EXTENDED_FEATURES => HciInformationalOpcode::ReadLocalExtendedFeatures,
-			consts::informational::READ_BUFFER_SIZE => HciInformationalOpcode::ReadBufferSize,
-			consts::informational::READ_BD_ADDR => HciInformationalOpcode::ReadBdAddr,
-			consts::informational::READ_DATA_BLOCK_SIZE => HciInformationalOpcode::ReadDataBlockSize,
-			value => HciInformationalOpcode::Unknown(value),
+			consts::informational::READ_LOCAL_VERSION_INFORMATION => InformationalOpcode::ReadLocalVersionInformation,
+			consts::informational::READ_LOCAL_SUPPORTED_COMMANDS => InformationalOpcode::ReadLocalSupportedCommands,
+			consts::informational::READ_LOCAL_SUPPORTED_FEATURES => InformationalOpcode::ReadLocalSupportedFeatures,
+			consts::informational::READ_LOCAL_EXTENDED_FEATURES => InformationalOpcode::ReadLocalExtendedFeatures,
+			consts::informational::READ_BUFFER_SIZE => InformationalOpcode::ReadBufferSize,
+			consts::informational::READ_BD_ADDR => InformationalOpcode::ReadBdAddr,
+			consts::informational::READ_DATA_BLOCK_SIZE => InformationalOpcode::ReadDataBlockSize,
+			value => InformationalOpcode::Unknown(value),
 		}
 	}
 }
 
-impl Into<u16> for HciInformationalOpcode {
+impl Into<u16> for InformationalOpcode {
 	fn into(self) -> u16 {
 		let ocf = match self {
-			HciInformationalOpcode::ReadLocalVersionInformation => consts::informational::READ_LOCAL_VERSION_INFORMATION,
-			HciInformationalOpcode::ReadLocalSupportedCommands => consts::informational::READ_LOCAL_SUPPORTED_COMMANDS,
-			HciInformationalOpcode::ReadLocalSupportedFeatures => consts::informational::READ_LOCAL_SUPPORTED_FEATURES,
-			HciInformationalOpcode::ReadLocalExtendedFeatures => consts::informational::READ_LOCAL_EXTENDED_FEATURES,
-			HciInformationalOpcode::ReadBufferSize => consts::informational::READ_BUFFER_SIZE,
-			HciInformationalOpcode::ReadBdAddr => consts::informational::READ_BD_ADDR,
-			HciInformationalOpcode::ReadDataBlockSize => consts::informational::READ_DATA_BLOCK_SIZE,
-			HciInformationalOpcode::Unknown(ocf) => ocf,
+			InformationalOpcode::ReadLocalVersionInformation => consts::informational::READ_LOCAL_VERSION_INFORMATION,
+			InformationalOpcode::ReadLocalSupportedCommands => consts::informational::READ_LOCAL_SUPPORTED_COMMANDS,
+			InformationalOpcode::ReadLocalSupportedFeatures => consts::informational::READ_LOCAL_SUPPORTED_FEATURES,
+			InformationalOpcode::ReadLocalExtendedFeatures => consts::informational::READ_LOCAL_EXTENDED_FEATURES,
+			InformationalOpcode::ReadBufferSize => consts::informational::READ_BUFFER_SIZE,
+			InformationalOpcode::ReadBdAddr => consts::informational::READ_BD_ADDR,
+			InformationalOpcode::ReadDataBlockSize => consts::informational::READ_DATA_BLOCK_SIZE,
+			InformationalOpcode::Unknown(ocf) => ocf,
 		} & ((1 << 10) - 1);
 		(consts::informational::OGF << 10) | ocf
 	}
 }
 
 #[cfg(test)]
-mod hciinformationalopcode_tests {
+mod informationalopcode_tests {
 	use super::*;
 
 	#[test]
-	fn test_hciinformationalopcode_readlocalversioninformation() {
+	fn test_informationalopcode_readlocalversioninformation() {
 		{
-			let oc: u16 = HciOpcode::Informational(HciInformationalOpcode::ReadLocalVersionInformation).into();
+			let oc: u16 = Opcode::Informational(InformationalOpcode::ReadLocalVersionInformation).into();
 			assert_eq!(oc, 0x1001);
-			let oc: u16 = HciInformationalOpcode::ReadLocalVersionInformation.into();
+			let oc: u16 = InformationalOpcode::ReadLocalVersionInformation.into();
 			assert_eq!(oc, 0x1001);
-			let oc = HciOpcode::from(oc);
-			assert_eq!(oc, HciOpcode::Informational(HciInformationalOpcode::ReadLocalVersionInformation));
+			let oc = Opcode::from(oc);
+			assert_eq!(oc, Opcode::Informational(InformationalOpcode::ReadLocalVersionInformation));
 		}
 	}
 
 	#[test]
-	fn test_hciinformationalopcode_readlocalsupportedcommands() {
+	fn test_informationalopcode_readlocalsupportedcommands() {
 		{
-			let oc: u16 = HciOpcode::Informational(HciInformationalOpcode::ReadLocalSupportedCommands).into();
+			let oc: u16 = Opcode::Informational(InformationalOpcode::ReadLocalSupportedCommands).into();
 			assert_eq!(oc, 0x1002);
-			let oc: u16 = HciInformationalOpcode::ReadLocalSupportedCommands.into();
+			let oc: u16 = InformationalOpcode::ReadLocalSupportedCommands.into();
 			assert_eq!(oc, 0x1002);
-			let oc = HciOpcode::from(oc);
-			assert_eq!(oc, HciOpcode::Informational(HciInformationalOpcode::ReadLocalSupportedCommands));
+			let oc = Opcode::from(oc);
+			assert_eq!(oc, Opcode::Informational(InformationalOpcode::ReadLocalSupportedCommands));
 		}
 	}
 
 	#[test]
-	fn test_hciinformationalopcode_readlocalsupportedfeatures() {
+	fn test_informationalopcode_readlocalsupportedfeatures() {
 		{
-			let oc: u16 = HciOpcode::Informational(HciInformationalOpcode::ReadLocalSupportedFeatures).into();
+			let oc: u16 = Opcode::Informational(InformationalOpcode::ReadLocalSupportedFeatures).into();
 			assert_eq!(oc, 0x1003);
-			let oc: u16 = HciInformationalOpcode::ReadLocalSupportedFeatures.into();
+			let oc: u16 = InformationalOpcode::ReadLocalSupportedFeatures.into();
 			assert_eq!(oc, 0x1003);
-			let oc = HciOpcode::from(oc);
-			assert_eq!(oc, HciOpcode::Informational(HciInformationalOpcode::ReadLocalSupportedFeatures));
+			let oc = Opcode::from(oc);
+			assert_eq!(oc, Opcode::Informational(InformationalOpcode::ReadLocalSupportedFeatures));
 		}
 	}
 
 	#[test]
-	fn test_hciinformationalopcode_readlocalextendedfeatures() {
+	fn test_informationalopcode_readlocalextendedfeatures() {
 		{
-			let oc: u16 = HciOpcode::Informational(HciInformationalOpcode::ReadLocalExtendedFeatures).into();
+			let oc: u16 = Opcode::Informational(InformationalOpcode::ReadLocalExtendedFeatures).into();
 			assert_eq!(oc, 0x1004);
-			let oc: u16 = HciInformationalOpcode::ReadLocalExtendedFeatures.into();
+			let oc: u16 = InformationalOpcode::ReadLocalExtendedFeatures.into();
 			assert_eq!(oc, 0x1004);
-			let oc = HciOpcode::from(oc);
-			assert_eq!(oc, HciOpcode::Informational(HciInformationalOpcode::ReadLocalExtendedFeatures));
+			let oc = Opcode::from(oc);
+			assert_eq!(oc, Opcode::Informational(InformationalOpcode::ReadLocalExtendedFeatures));
 		}
 	}
 }
 
 #[derive(Clone,Copy,Debug,PartialEq,Eq)]
-pub enum HciStatusParametersOpcode {
+pub enum StatusParametersOpcode {
 	Unknown(u16),
 }
 
-impl HciStatusParametersOpcode {
-	fn from_trusted_u16(value: u16) -> HciStatusParametersOpcode {
+impl StatusParametersOpcode {
+	fn from_trusted_u16(value: u16) -> StatusParametersOpcode {
 		match value & ((1 << 10) - 1) {
-			value => HciStatusParametersOpcode::Unknown(value),
+			value => StatusParametersOpcode::Unknown(value),
 		}
 	}
 }
 
-impl Into<u16> for HciStatusParametersOpcode {
+impl Into<u16> for StatusParametersOpcode {
 	fn into(self) -> u16 {
 		let ocf = match self {
-			HciStatusParametersOpcode::Unknown(ocf) => ocf,
+			StatusParametersOpcode::Unknown(ocf) => ocf,
 		} & ((1 << 10) - 1);
 		(consts::status_parameters::OGF << 10) | ocf
 	}
 }
 
 #[derive(Clone,Copy,Debug,PartialEq,Eq)]
-pub enum HciTestingOpcode {
+pub enum TestingOpcode {
 	Unknown(u16),
 }
 
-impl HciTestingOpcode {
-	fn from_trusted_u16(value: u16) -> HciTestingOpcode {
+impl TestingOpcode {
+	fn from_trusted_u16(value: u16) -> TestingOpcode {
 		match value & ((1 << 10) - 1) {
-			value => HciTestingOpcode::Unknown(value),
+			value => TestingOpcode::Unknown(value),
 		}
 	}
 }
 
-impl Into<u16> for HciTestingOpcode {
+impl Into<u16> for TestingOpcode {
 	fn into(self) -> u16 {
 		let ocf = match self {
-			HciTestingOpcode::Unknown(ocf) => ocf,
+			TestingOpcode::Unknown(ocf) => ocf,
 		} & ((1 << 10) - 1);
 		(consts::testing::OGF << 10) | ocf
 	}
 }
 
 #[derive(Clone,Copy,Debug,PartialEq,Eq)]
-pub enum HciLeControllerOpcode {
+pub enum LeControllerOpcode {
 	SetEventMask,
 	ReadBufferSize,
 	ReadLocalSupportedFeatures,
@@ -823,100 +823,100 @@ pub enum HciLeControllerOpcode {
 	Unknown(u16),
 }
 
-impl HciLeControllerOpcode {
-	fn from_trusted_u16(value: u16) -> HciLeControllerOpcode {
+impl LeControllerOpcode {
+	fn from_trusted_u16(value: u16) -> LeControllerOpcode {
 		match value & ((1 << 10) - 1) {
-			consts::le_controller::SET_EVENT_MASK => HciLeControllerOpcode::SetEventMask,
-			consts::le_controller::READ_BUFFER_SIZE => HciLeControllerOpcode::ReadBufferSize,
-			consts::le_controller::READ_LOCAL_SUPPORTED_FEATURES => HciLeControllerOpcode::ReadLocalSupportedFeatures,
-			consts::le_controller::SET_RANDOM_ADDRESS => HciLeControllerOpcode::SetRandomAddress,
-			consts::le_controller::SET_ADVERTISING_PARAMETERS => HciLeControllerOpcode::SetAdvertisingParameters,
-			consts::le_controller::READ_ADVERTISING_CHANNEL_TX_POWER => HciLeControllerOpcode::ReadAdvertisingChannelTxPower,
-			consts::le_controller::SET_ADVERTISING_DATA => HciLeControllerOpcode::SetAdvertisingData,
-			consts::le_controller::SET_SCAN_RESPONSE_DATA => HciLeControllerOpcode::SetScanResponseData,
-			consts::le_controller::SET_ADVERTISE_ENABLE => HciLeControllerOpcode::SetAdvertiseEnable,
-			consts::le_controller::SET_SCAN_PARAMETERS => HciLeControllerOpcode::SetScanParameters,
-			consts::le_controller::SET_SCAN_ENABLE => HciLeControllerOpcode::SetScanEnable,
-			consts::le_controller::CREATE_CONNECTION => HciLeControllerOpcode::CreateConnection,
-			consts::le_controller::CREATE_CONNECTION_CANCEL => HciLeControllerOpcode::CreateConnectionCancel,
-			consts::le_controller::READ_WHITELIST_SIZE => HciLeControllerOpcode::ReadWhitelistSize,
-			consts::le_controller::CLEAR_WHITELIST => HciLeControllerOpcode::ClearWhitelist,
-			consts::le_controller::ADD_DEVICE_TO_WHITELIST => HciLeControllerOpcode::AddDeviceToWhitelist,
-			consts::le_controller::REMOVE_DEVICE_FROM_WHITELIST => HciLeControllerOpcode::RemoveDeviceFromWhitelist,
-			consts::le_controller::CONNECTION_UPDATE => HciLeControllerOpcode::ConnectionUpdate,
-			consts::le_controller::SET_HOST_CHANNEL_CLASSIFICATION => HciLeControllerOpcode::SetHostChannelClassification,
-			consts::le_controller::READ_CHANNEL_MAP => HciLeControllerOpcode::ReadChannelMap,
-			consts::le_controller::READ_REMOTE_USED_FEATURES => HciLeControllerOpcode::ReadRemoteUsedFeatures,
-			consts::le_controller::ENCRYPT => HciLeControllerOpcode::Encrypt,
-			consts::le_controller::RAND => HciLeControllerOpcode::Rand,
-			consts::le_controller::START_ENCRYPTION => HciLeControllerOpcode::StartEncryption,
-			consts::le_controller::LONG_TERM_KEY_REQUEST_REPLY => HciLeControllerOpcode::LongTermKeyRequestReply,
-			consts::le_controller::LONG_TERM_KEY_REQUEST_NEGATIVE_REPLY => HciLeControllerOpcode::LongTermKeyRequestNegativeReply,
-			consts::le_controller::READ_SUPPORTED_STATES => HciLeControllerOpcode::ReadSupportedStates,
-			consts::le_controller::RECEIVER_TEST => HciLeControllerOpcode::ReceiverTest,
-			consts::le_controller::TRANSMITTER_TEST => HciLeControllerOpcode::TransmitterTest,
-			consts::le_controller::TEST_END => HciLeControllerOpcode::TestEnd,
-			value => HciLeControllerOpcode::Unknown(value),
+			consts::le_controller::SET_EVENT_MASK => LeControllerOpcode::SetEventMask,
+			consts::le_controller::READ_BUFFER_SIZE => LeControllerOpcode::ReadBufferSize,
+			consts::le_controller::READ_LOCAL_SUPPORTED_FEATURES => LeControllerOpcode::ReadLocalSupportedFeatures,
+			consts::le_controller::SET_RANDOM_ADDRESS => LeControllerOpcode::SetRandomAddress,
+			consts::le_controller::SET_ADVERTISING_PARAMETERS => LeControllerOpcode::SetAdvertisingParameters,
+			consts::le_controller::READ_ADVERTISING_CHANNEL_TX_POWER => LeControllerOpcode::ReadAdvertisingChannelTxPower,
+			consts::le_controller::SET_ADVERTISING_DATA => LeControllerOpcode::SetAdvertisingData,
+			consts::le_controller::SET_SCAN_RESPONSE_DATA => LeControllerOpcode::SetScanResponseData,
+			consts::le_controller::SET_ADVERTISE_ENABLE => LeControllerOpcode::SetAdvertiseEnable,
+			consts::le_controller::SET_SCAN_PARAMETERS => LeControllerOpcode::SetScanParameters,
+			consts::le_controller::SET_SCAN_ENABLE => LeControllerOpcode::SetScanEnable,
+			consts::le_controller::CREATE_CONNECTION => LeControllerOpcode::CreateConnection,
+			consts::le_controller::CREATE_CONNECTION_CANCEL => LeControllerOpcode::CreateConnectionCancel,
+			consts::le_controller::READ_WHITELIST_SIZE => LeControllerOpcode::ReadWhitelistSize,
+			consts::le_controller::CLEAR_WHITELIST => LeControllerOpcode::ClearWhitelist,
+			consts::le_controller::ADD_DEVICE_TO_WHITELIST => LeControllerOpcode::AddDeviceToWhitelist,
+			consts::le_controller::REMOVE_DEVICE_FROM_WHITELIST => LeControllerOpcode::RemoveDeviceFromWhitelist,
+			consts::le_controller::CONNECTION_UPDATE => LeControllerOpcode::ConnectionUpdate,
+			consts::le_controller::SET_HOST_CHANNEL_CLASSIFICATION => LeControllerOpcode::SetHostChannelClassification,
+			consts::le_controller::READ_CHANNEL_MAP => LeControllerOpcode::ReadChannelMap,
+			consts::le_controller::READ_REMOTE_USED_FEATURES => LeControllerOpcode::ReadRemoteUsedFeatures,
+			consts::le_controller::ENCRYPT => LeControllerOpcode::Encrypt,
+			consts::le_controller::RAND => LeControllerOpcode::Rand,
+			consts::le_controller::START_ENCRYPTION => LeControllerOpcode::StartEncryption,
+			consts::le_controller::LONG_TERM_KEY_REQUEST_REPLY => LeControllerOpcode::LongTermKeyRequestReply,
+			consts::le_controller::LONG_TERM_KEY_REQUEST_NEGATIVE_REPLY => LeControllerOpcode::LongTermKeyRequestNegativeReply,
+			consts::le_controller::READ_SUPPORTED_STATES => LeControllerOpcode::ReadSupportedStates,
+			consts::le_controller::RECEIVER_TEST => LeControllerOpcode::ReceiverTest,
+			consts::le_controller::TRANSMITTER_TEST => LeControllerOpcode::TransmitterTest,
+			consts::le_controller::TEST_END => LeControllerOpcode::TestEnd,
+			value => LeControllerOpcode::Unknown(value),
 		}
 	}
 }
 
-impl Into<u16> for HciLeControllerOpcode {
+impl Into<u16> for LeControllerOpcode {
 	fn into(self) -> u16 {
 		let ocf = match self {
-			HciLeControllerOpcode::SetEventMask => consts::le_controller::SET_EVENT_MASK,
-			HciLeControllerOpcode::ReadBufferSize => consts::le_controller::READ_BUFFER_SIZE,
-			HciLeControllerOpcode::ReadLocalSupportedFeatures => consts::le_controller::READ_LOCAL_SUPPORTED_FEATURES,
-			HciLeControllerOpcode::SetRandomAddress => consts::le_controller::SET_RANDOM_ADDRESS,
-			HciLeControllerOpcode::SetAdvertisingParameters => consts::le_controller::SET_ADVERTISING_PARAMETERS,
-			HciLeControllerOpcode::ReadAdvertisingChannelTxPower => consts::le_controller::READ_ADVERTISING_CHANNEL_TX_POWER,
-			HciLeControllerOpcode::SetAdvertisingData => consts::le_controller::SET_ADVERTISING_DATA,
-			HciLeControllerOpcode::SetScanResponseData => consts::le_controller::SET_SCAN_RESPONSE_DATA,
-			HciLeControllerOpcode::SetAdvertiseEnable => consts::le_controller::SET_ADVERTISE_ENABLE,
-			HciLeControllerOpcode::SetScanParameters => consts::le_controller::SET_SCAN_PARAMETERS,
-			HciLeControllerOpcode::SetScanEnable => consts::le_controller::SET_SCAN_ENABLE,
-			HciLeControllerOpcode::CreateConnection => consts::le_controller::CREATE_CONNECTION,
-			HciLeControllerOpcode::CreateConnectionCancel => consts::le_controller::CREATE_CONNECTION_CANCEL,
-			HciLeControllerOpcode::ReadWhitelistSize => consts::le_controller::READ_WHITELIST_SIZE,
-			HciLeControllerOpcode::ClearWhitelist => consts::le_controller::CLEAR_WHITELIST,
-			HciLeControllerOpcode::AddDeviceToWhitelist => consts::le_controller::ADD_DEVICE_TO_WHITELIST,
-			HciLeControllerOpcode::RemoveDeviceFromWhitelist => consts::le_controller::REMOVE_DEVICE_FROM_WHITELIST,
-			HciLeControllerOpcode::ConnectionUpdate => consts::le_controller::CONNECTION_UPDATE,
-			HciLeControllerOpcode::SetHostChannelClassification => consts::le_controller::SET_HOST_CHANNEL_CLASSIFICATION,
-			HciLeControllerOpcode::ReadChannelMap => consts::le_controller::READ_CHANNEL_MAP,
-			HciLeControllerOpcode::ReadRemoteUsedFeatures => consts::le_controller::READ_REMOTE_USED_FEATURES,
-			HciLeControllerOpcode::Encrypt => consts::le_controller::ENCRYPT,
-			HciLeControllerOpcode::Rand => consts::le_controller::RAND,
-			HciLeControllerOpcode::StartEncryption => consts::le_controller::START_ENCRYPTION,
-			HciLeControllerOpcode::LongTermKeyRequestReply => consts::le_controller::LONG_TERM_KEY_REQUEST_REPLY,
-			HciLeControllerOpcode::LongTermKeyRequestNegativeReply => consts::le_controller::LONG_TERM_KEY_REQUEST_NEGATIVE_REPLY,
-			HciLeControllerOpcode::ReadSupportedStates => consts::le_controller::READ_SUPPORTED_STATES,
-			HciLeControllerOpcode::ReceiverTest => consts::le_controller::RECEIVER_TEST,
-			HciLeControllerOpcode::TransmitterTest => consts::le_controller::TRANSMITTER_TEST,
-			HciLeControllerOpcode::TestEnd => consts::le_controller::TEST_END,
-			HciLeControllerOpcode::Unknown(ocf) => ocf,
+			LeControllerOpcode::SetEventMask => consts::le_controller::SET_EVENT_MASK,
+			LeControllerOpcode::ReadBufferSize => consts::le_controller::READ_BUFFER_SIZE,
+			LeControllerOpcode::ReadLocalSupportedFeatures => consts::le_controller::READ_LOCAL_SUPPORTED_FEATURES,
+			LeControllerOpcode::SetRandomAddress => consts::le_controller::SET_RANDOM_ADDRESS,
+			LeControllerOpcode::SetAdvertisingParameters => consts::le_controller::SET_ADVERTISING_PARAMETERS,
+			LeControllerOpcode::ReadAdvertisingChannelTxPower => consts::le_controller::READ_ADVERTISING_CHANNEL_TX_POWER,
+			LeControllerOpcode::SetAdvertisingData => consts::le_controller::SET_ADVERTISING_DATA,
+			LeControllerOpcode::SetScanResponseData => consts::le_controller::SET_SCAN_RESPONSE_DATA,
+			LeControllerOpcode::SetAdvertiseEnable => consts::le_controller::SET_ADVERTISE_ENABLE,
+			LeControllerOpcode::SetScanParameters => consts::le_controller::SET_SCAN_PARAMETERS,
+			LeControllerOpcode::SetScanEnable => consts::le_controller::SET_SCAN_ENABLE,
+			LeControllerOpcode::CreateConnection => consts::le_controller::CREATE_CONNECTION,
+			LeControllerOpcode::CreateConnectionCancel => consts::le_controller::CREATE_CONNECTION_CANCEL,
+			LeControllerOpcode::ReadWhitelistSize => consts::le_controller::READ_WHITELIST_SIZE,
+			LeControllerOpcode::ClearWhitelist => consts::le_controller::CLEAR_WHITELIST,
+			LeControllerOpcode::AddDeviceToWhitelist => consts::le_controller::ADD_DEVICE_TO_WHITELIST,
+			LeControllerOpcode::RemoveDeviceFromWhitelist => consts::le_controller::REMOVE_DEVICE_FROM_WHITELIST,
+			LeControllerOpcode::ConnectionUpdate => consts::le_controller::CONNECTION_UPDATE,
+			LeControllerOpcode::SetHostChannelClassification => consts::le_controller::SET_HOST_CHANNEL_CLASSIFICATION,
+			LeControllerOpcode::ReadChannelMap => consts::le_controller::READ_CHANNEL_MAP,
+			LeControllerOpcode::ReadRemoteUsedFeatures => consts::le_controller::READ_REMOTE_USED_FEATURES,
+			LeControllerOpcode::Encrypt => consts::le_controller::ENCRYPT,
+			LeControllerOpcode::Rand => consts::le_controller::RAND,
+			LeControllerOpcode::StartEncryption => consts::le_controller::START_ENCRYPTION,
+			LeControllerOpcode::LongTermKeyRequestReply => consts::le_controller::LONG_TERM_KEY_REQUEST_REPLY,
+			LeControllerOpcode::LongTermKeyRequestNegativeReply => consts::le_controller::LONG_TERM_KEY_REQUEST_NEGATIVE_REPLY,
+			LeControllerOpcode::ReadSupportedStates => consts::le_controller::READ_SUPPORTED_STATES,
+			LeControllerOpcode::ReceiverTest => consts::le_controller::RECEIVER_TEST,
+			LeControllerOpcode::TransmitterTest => consts::le_controller::TRANSMITTER_TEST,
+			LeControllerOpcode::TestEnd => consts::le_controller::TEST_END,
+			LeControllerOpcode::Unknown(ocf) => ocf,
 		} & ((1 << 10) - 1);
 		((consts::le_controller::OGF as u16) << 10) | ocf
 	}
 }
 
 #[derive(Clone,Copy,Debug,PartialEq,Eq)]
-pub enum HciVendorOpcode {
+pub enum VendorOpcode {
 	Unknown(u16),
 }
 
-impl HciVendorOpcode {
-	fn from_trusted_u16(value: u16) -> HciVendorOpcode {
+impl VendorOpcode {
+	fn from_trusted_u16(value: u16) -> VendorOpcode {
 		match value & ((1 << 10) - 1) {
-			value => HciVendorOpcode::Unknown(value),
+			value => VendorOpcode::Unknown(value),
 		}
 	}
 }
 
-impl Into<u16> for HciVendorOpcode {
+impl Into<u16> for VendorOpcode {
 	fn into(self) -> u16 {
 		let ocf = match self {
-			HciVendorOpcode::Unknown(ocf) => ocf,
+			VendorOpcode::Unknown(ocf) => ocf,
 		} & ((1 << 10) - 1);
 		(consts::vendor::OGF << 10) | ocf
 	}
