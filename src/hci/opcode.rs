@@ -323,6 +323,13 @@ impl Into<u16> for NopOpcode {
 	}
 }
 
+impl Into<Opcode> for NopOpcode {
+	fn into(self) -> Opcode {
+		Opcode::Nop(self)
+	}
+}
+
+
 #[derive(Clone,Copy,Debug,PartialEq,Eq)]
 pub enum LinkControlOpcode {
 	Unknown(u16),
@@ -342,6 +349,12 @@ impl Into<u16> for LinkControlOpcode {
 			LinkControlOpcode::Unknown(ocf) => ocf,
 		} & ((1 << 10) - 1);
 		(consts::link_control::OGF << 10) | ocf
+	}
+}
+
+impl Into<Opcode> for LinkControlOpcode {
+	fn into(self) -> Opcode {
+		Opcode::LinkControl(self)
 	}
 }
 
@@ -407,6 +420,12 @@ impl Into<u16> for LinkPolicyOpcode {
 			LinkPolicyOpcode::Unknown(ocf) => ocf,
 		} & ((1 << 10) - 1);
 		(consts::link_policy::OGF << 10) | ocf
+	}
+}
+
+impl Into<Opcode> for LinkPolicyOpcode {
+	fn into(self) -> Opcode {
+		Opcode::LinkPolicy(self)
 	}
 }
 
@@ -559,6 +578,12 @@ impl Into<u16> for ControllerOpcode {
 	}
 }
 
+impl Into<Opcode> for ControllerOpcode {
+	fn into(self) -> Opcode {
+		Opcode::Controller(self)
+	}
+}
+
 #[cfg(test)]
 mod controlleropcode_tests {
 	use super::*;
@@ -648,6 +673,7 @@ mod controlleropcode_tests {
 	}
 }
 
+
 #[derive(Clone,Copy,Debug,PartialEq,Eq)]
 pub enum InformationalOpcode {
 	ReadLocalVersionInformation,
@@ -688,6 +714,12 @@ impl Into<u16> for InformationalOpcode {
 			InformationalOpcode::Unknown(ocf) => ocf,
 		} & ((1 << 10) - 1);
 		(consts::informational::OGF << 10) | ocf
+	}
+}
+
+impl Into<Opcode> for InformationalOpcode {
+	fn into(self) -> Opcode {
+		Opcode::Informational(self)
 	}
 }
 
@@ -744,6 +776,7 @@ mod informationalopcode_tests {
 	}
 }
 
+
 #[derive(Clone,Copy,Debug,PartialEq,Eq)]
 pub enum StatusParametersOpcode {
 	Unknown(u16),
@@ -766,6 +799,13 @@ impl Into<u16> for StatusParametersOpcode {
 	}
 }
 
+impl Into<Opcode> for StatusParametersOpcode {
+	fn into(self) -> Opcode {
+		Opcode::StatusParameters(self)
+	}
+}
+
+
 #[derive(Clone,Copy,Debug,PartialEq,Eq)]
 pub enum TestingOpcode {
 	Unknown(u16),
@@ -787,6 +827,13 @@ impl Into<u16> for TestingOpcode {
 		(consts::testing::OGF << 10) | ocf
 	}
 }
+
+impl Into<Opcode> for TestingOpcode {
+	fn into(self) -> Opcode {
+		Opcode::Testing(self)
+	}
+}
+
 
 #[derive(Clone,Copy,Debug,PartialEq,Eq)]
 pub enum LeControllerOpcode {
@@ -900,6 +947,13 @@ impl Into<u16> for LeControllerOpcode {
 	}
 }
 
+impl Into<Opcode> for LeControllerOpcode {
+	fn into(self) -> Opcode {
+		Opcode::LeController(self)
+	}
+}
+
+
 #[derive(Clone,Copy,Debug,PartialEq,Eq)]
 pub enum VendorOpcode {
 	Unknown(u16),
@@ -919,6 +973,12 @@ impl Into<u16> for VendorOpcode {
 			VendorOpcode::Unknown(ocf) => ocf,
 		} & ((1 << 10) - 1);
 		(consts::vendor::OGF << 10) | ocf
+	}
+}
+
+impl Into<Opcode> for VendorOpcode {
+	fn into(self) -> Opcode {
+		Opcode::Vendor(self)
 	}
 }
 

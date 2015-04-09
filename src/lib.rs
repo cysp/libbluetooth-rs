@@ -88,6 +88,11 @@ mod tests {
 			let b = HciCommandBuilder::new(oc).build();
 			assert_eq!(b.to_bytes(), &packet[1..]);
 		}
+		{
+			let packet = [0x01, 0x03, 0x0C, 0x00];
+			let b: Vec<u8> = command::controller::Reset.into();
+			assert_eq!(b, &packet[1..]);
+		}
 
 		// > 04 0E 04 01 03 0C 00
 		// < 01 03 10 00
@@ -96,6 +101,11 @@ mod tests {
 			let oc = Opcode::Informational(InformationalOpcode::ReadLocalSupportedFeatures);
 			let b = HciCommandBuilder::new(oc).build();
 			assert_eq!(b.to_bytes(), &packet[1..]);
+		}
+		{
+			let packet = [0x01, 0x03, 0x10, 0x00];
+			let b: Vec<u8> = command::informational::ReadLocalSupportedFeatures.into();
+			assert_eq!(b, &packet[1..]);
 		}
 
 		// > 04 0E 0C 01 03 10 00 FF FF 8F FE DB FF 5B 87
@@ -106,6 +116,11 @@ mod tests {
 			let b = HciCommandBuilder::new(oc).build();
 			assert_eq!(b.to_bytes(), &packet[1..]);
 		}
+		{
+			let packet = [0x01, 0x01, 0x10, 0x00];
+			let b: Vec<u8> = command::informational::ReadLocalVersionInformation.into();
+			assert_eq!(b, &packet[1..]);
+		}
 
 		// > 04 0E 0C 01 01 10 00 06 BB 22 06 0A 00 BB 22
 		// < 01 09 10 00
@@ -115,6 +130,11 @@ mod tests {
 			let b = HciCommandBuilder::new(oc).build();
 			assert_eq!(b.to_bytes(), &packet[1..]);
 		}
+		{
+			let packet = [0x01, 0x09, 0x10, 0x00];
+			let b: Vec<u8> = command::informational::ReadBdAddr.into();
+			assert_eq!(b, &packet[1..]);
+		}
 
 		// > 04 0E 0A 01 09 10 00 13 71 DA 7D 1A 00
 		// < 01 05 10 00
@@ -123,6 +143,11 @@ mod tests {
 			let oc = Opcode::Informational(InformationalOpcode::ReadBufferSize);
 			let b = HciCommandBuilder::new(oc).build();
 			assert_eq!(b.to_bytes(), &packet[1..]);
+		}
+		{
+			let packet = [0x01, 0x05, 0x10, 0x00];
+			let b: Vec<u8> = command::informational::ReadBufferSize.into();
+			assert_eq!(b, &packet[1..]);
 		}
 
 		// > 04 0E 0B 01 05 10 00 36 01 40 0A 00 08 00
@@ -298,6 +323,11 @@ mod tests {
 			let b = HciCommandBuilder::new(oc).build();
 			assert_eq!(b.to_bytes(), &packet[1..]);
 		}
+		{
+			let packet = [0x01, 0x02, 0x10, 0x00];
+			let b: Vec<u8> = command::informational::ReadLocalSupportedCommands.into();
+			assert_eq!(b, &packet[1..]);
+		}
 
 		// > 04 0E 44 01 02 10 00 FF FF FF 03 FE FF FF FF FF FF FF FF F3
 		//   0F E8 FE 3F F7 83 FF 1C 00 00 00 61 F7 FF FF 7F 00 00 00 00
@@ -369,6 +399,14 @@ mod tests {
 			let b = HciCommandBuilder::new(oc).parameter(2u8).build();
 			assert_eq!(b.to_bytes(), &packet[1..]);
 		}
+		{
+			let packet = [0x01, 0x45, 0x0C, 0x01, 0x02];
+			let c = command::controller::WriteInquiryMode {
+				mode: command::controller::InquiryMode::RSSIOrExtended,
+			};
+			let b: Vec<u8> = c.into();
+			assert_eq!(b, &packet[1..]);
+		}
 
 		// > 04 0E 04 01 45 0C 00
 		// < 01 58 0C 00
@@ -386,6 +424,11 @@ mod tests {
 			let oc = Opcode::Informational(InformationalOpcode::ReadLocalExtendedFeatures);
 			let b = HciCommandBuilder::new(oc).parameter(1u8).build();
 			assert_eq!(b.to_bytes(), &packet[1..]);
+		}
+		{
+			let packet = [0x01, 0x04, 0x10, 0x01, 0x01];
+			let b: Vec<u8> = command::informational::ReadLocalExtendedFeatures{ page: 1 }.into();
+			assert_eq!(b, &packet[1..]);
 		}
 
 		// > 04 0E 0E 01 04 10 00 01 00 00 00 00 00 00 00 00 00
