@@ -16,22 +16,21 @@ use byteorder::{ReadBytesExt,WriteBytesExt,LittleEndian};
 mod consts {
 	pub mod packet_type {
 		pub const COMMAND: u8 = 0x01;
-		pub const ACL_DATA: u8 = 0x01;
-		pub const SCO_DATA: u8 = 0x01;
-		pub const EVENT: u8 = 0x01;
-		pub const VENDOR: u8 = 0x01;
+		pub const ACL_DATA: u8 = 0x02;
+		pub const SCO_DATA: u8 = 0x03;
+		pub const EVENT: u8 = 0x04;
+		pub const VENDOR: u8 = 0xFF;
 	}
 }
 
-
-// #[derive(Clone,Copy,Debug,PartialEq,Eq)]
-// pub enum HciPacketType {
-// 	Command,
-// 	AclData,
-// 	ScoData,
-// 	Event,
-// 	Vendor,
-// }
+#[derive(Clone,Copy,Debug,PartialEq,Eq)]
+pub enum PacketType {
+	Command,
+	AclData,
+	ScoData,
+	Event,
+	Vendor,
+}
 
 // impl HciPacketType {
 // 	fn from_readable(r: &mut std::io::Read) -> Option<HciPacketType> {
@@ -45,6 +44,20 @@ mod consts {
 // 				_ => None,
 // 			},
 // 			Err(e) => None,
+// 		}
+// 	}
+// }
+
+// pub struct PacketBuilder {
+// 	packet_type: PacketType,
+// 	data: Vec<u8>,
+// }
+
+// impl PacketBuilder {
+// 	pub fn new(type: PacketType) -> PacketBuilder {
+// 		PacketBuilder {
+// 			packet_type: type,
+// 			data: Vec::new(),
 // 		}
 // 	}
 // }

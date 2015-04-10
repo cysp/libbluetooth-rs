@@ -1,5 +1,4 @@
-use super::super::opcode::{InformationalOpcode};
-use super::{HciCommandBuilder, HciCommandBuilding};
+use hci::opcode::InformationalOpcode;
 
 
 define_command!(InformationalOpcode::ReadLocalVersionInformation);

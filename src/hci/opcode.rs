@@ -207,7 +207,7 @@ mod consts {
 
 
 #[derive(Clone,Copy,Debug,PartialEq,Eq)]
-pub enum OpcodeGroup {
+enum OpcodeGroup {
 	Nop,
 	LinkControl,
 	LinkPolicy,
