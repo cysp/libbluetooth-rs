@@ -248,6 +248,20 @@ mod tests {
 		// 	let b = HciCommandBuilder::new(oc).parameter([0xFF, 0xFF, 0xFB, 0xFF, 0x07, 0xF8, 0xBF, 0x3D].as_ref()).build();
 		// 	assert_eq!(b.to_bytes(), &packet[1..]);
 		// }
+		{
+			let packet = [0x01, 0x01, 0x0C, 0x08, 0xFF, 0xFF, 0xFB, 0xFF, 0x07, 0xF8, 0xBF, 0x3D];
+			let b: Vec<u8> = command::controller::SetEventMask{
+				mask: EventMask(0x3DBFF807FFFBFFFF),
+			}.into();
+			assert_eq!(b, &packet[1..]);
+		}
+		{
+			let packet = [0x01, 0x01, 0x0C, 0x08, 0xFF, 0xFF, 0xFB, 0xFF, 0x07, 0xF8, 0xBF, 0x3D];
+			let b: Vec<u8> = command::controller::SetEventMask{
+				mask: EventMask::known(),
+			}.into();
+			assert_eq!(b, &packet[1..]);
+		}
 
 		// > 04 0E 04 01 01 0C 00
 		// < 01 01 20 08 1F 00 00 00 00 00 00 00
@@ -255,6 +269,13 @@ mod tests {
 			let packet = [0x01, 0x01, 0x20, 0x08, 0x1F, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
 			let b: Vec<u8> = command::le_controller::SetEventMask{
 				mask: LeEventMask(0x00000000000000001F),
+			}.into();
+			assert_eq!(b, &packet[1..]);
+		}
+		{
+			let packet = [0x01, 0x01, 0x20, 0x08, 0x1F, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00];
+			let b: Vec<u8> = command::le_controller::SetEventMask{
+				mask: LeEventMask::known(),
 			}.into();
 			assert_eq!(b, &packet[1..]);
 		}
