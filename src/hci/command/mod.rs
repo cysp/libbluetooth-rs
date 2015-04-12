@@ -70,7 +70,6 @@ pub struct Command {
 
 impl Command {
 	pub fn write_to(&self, w: &mut std::io::Write) -> std::io::Result<usize> {
-		let opcode: u16 = self.opcode.into();
 		let parameter_data_length = self.parameter_data.len();
 		if parameter_data_length > 255 {
 			return Err(std::io::Error::new(std::io::ErrorKind::InvalidInput, "parameter_data too large"));
@@ -160,7 +159,7 @@ impl CommandBuilding<u64> for CommandBuilder {
 
 impl CommandBuilding<[u8; 8]> for CommandBuilder {
 	fn parameter(mut self, v: [u8; 8]) -> CommandBuilder {
-		self.parameter_data.push_all(&v);
+		self.parameter_data.extend(v.iter().cloned());
 		self
 	}
 }

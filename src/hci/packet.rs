@@ -1,27 +1,17 @@
 #![allow(unused_imports)]
 
-extern crate libc;
-
 use std;
 use std::io;
 use std::error::{Error};
-use std::borrow::ToOwned;
-use std::num::FromPrimitive;
 
 use serialize::hex::ToHex;
 
 use byteorder::{ReadBytesExt,WriteBytesExt,LittleEndian};
 
-
 mod consts {
-	pub mod packet_type {
-		pub const COMMAND: u8 = 0x01;
-		pub const ACL_DATA: u8 = 0x02;
-		pub const SCO_DATA: u8 = 0x03;
-		pub const EVENT: u8 = 0x04;
-		pub const VENDOR: u8 = 0xFF;
-	}
+	pub use hci::consts::packet::*;
 }
+
 
 #[derive(Clone,Copy,Debug,PartialEq,Eq)]
 pub enum PacketType {
