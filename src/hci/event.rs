@@ -9,7 +9,7 @@ use serialize::hex::ToHex;
 use byteorder::{ReadBytesExt,WriteBytesExt,LittleEndian};
 
 mod consts {
-	pub use hci::consts::events::*;
+	pub use hci::consts::event::*;
 }
 
 

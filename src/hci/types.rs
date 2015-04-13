@@ -7,7 +7,7 @@ mod consts {
 macro_rules! event_mask_builder_method {
 	( $method_name:ident => $const_name:ident ) => {
 		pub fn $method_name (mut self) -> EventMaskBuilder {
-			self.mask |= consts::event_mask::$const_name;
+			self.mask |= consts::event::masks::$const_name;
 			self
 		}
 	}
@@ -23,56 +23,58 @@ impl EventMask {
 		std::default::Default::default()
 	}
 	pub fn known() -> EventMask {
-		let mut mask: u64 = 0x0000000000006000;
-		mask |= consts::event_mask::INQUIRY_COMPLETE;
-		mask |= consts::event_mask::INQUIRY_RESULT;
-		mask |= consts::event_mask::CONNECTION_COMPLETE;
-		mask |= consts::event_mask::CONNECTION_REQUEST;
-		mask |= consts::event_mask::DISCONNECTION_COMPLETE;
-		mask |= consts::event_mask::AUTHENTICATION_COMPLETE;
-		mask |= consts::event_mask::REMOTE_NAME_REQUEST_COMPLETE;
-		mask |= consts::event_mask::ENCRYPTION_CHANGE;
-		mask |= consts::event_mask::CHANGE_CONNECTION_LINK_KEY_COMPLETE;
-		mask |= consts::event_mask::MASTER_LINK_KEY_COMPLETE;
-		mask |= consts::event_mask::READ_REMOTE_SUPPORTED_FEATURES_COMPLETE;
-		mask |= consts::event_mask::READ_REMOTE_VERSION_INFORMATION_COMPLETE;
-		mask |= consts::event_mask::QOS_SETUP_COMPLETE;
-		mask |= consts::event_mask::HARDWARE_ERROR;
-		mask |= consts::event_mask::FLUSH_OCCURRED;
-		mask |= consts::event_mask::ROLE_CHANGE;
-		mask |= consts::event_mask::MODE_CHANGE;
-		mask |= consts::event_mask::RETURN_LINK_KEYS;
-		mask |= consts::event_mask::PIN_CODE_REQUEST;
-		mask |= consts::event_mask::LINK_KEY_REQUEST;
-		mask |= consts::event_mask::LINK_KEY_NOTIFICATION;
-		mask |= consts::event_mask::LOOPBACK_COMMAND;
-		mask |= consts::event_mask::DATA_BUFFER_OVERFLOW;
-		mask |= consts::event_mask::MAX_SLOTS_CHANGE;
-		mask |= consts::event_mask::READ_CLOCK_OFFSET_COMPLETE;
-		mask |= consts::event_mask::CONNECTION_PACKET_TYPE_CHANGED;
-		mask |= consts::event_mask::QOS_VIOLATION;
-		mask |= consts::event_mask::PAGE_SCAN_MODE_CHANGE;
-		mask |= consts::event_mask::PAGE_SCAN_REPETITION_MODE_CHANGE;
-		mask |= consts::event_mask::FLOW_SPECIFICATION_COMPLETE;
-		mask |= consts::event_mask::INQUIRY_RESULT_WITH_RSSI;
-		mask |= consts::event_mask::READ_REMOTE_EXTENDED_FEATURES_COMPLETE;
-		mask |= consts::event_mask::SYNCHRONOUS_CONNECTION_COMPLETE;
-		mask |= consts::event_mask::SYNCHRONOUS_CONNECTION_CHANGED;
-		mask |= consts::event_mask::SNIFF_SUBRATING;
-		mask |= consts::event_mask::EXTENDED_INQUIRY_RESULT;
-		mask |= consts::event_mask::ENCRYPTION_KEY_REFRESH_COMPLETE;
-		mask |= consts::event_mask::IO_CAPABILITY_REQUEST;
-		mask |= consts::event_mask::IO_CAPABILITY_REQUEST_REPLY;
-		mask |= consts::event_mask::USER_CONFIRMATION_REQUEST;
-		mask |= consts::event_mask::USER_PASSKEY_REQUEST;
-		mask |= consts::event_mask::REMOTE_OOB_DATA_REQUEST;
-		mask |= consts::event_mask::SIMPLE_PAIRING_COMPLETE;
-		mask |= consts::event_mask::LINK_SUPERVISION_TIMEOUT_CHANGED;
-		mask |= consts::event_mask::ENHANCED_FLUSH_COMPLETE;
-		mask |= consts::event_mask::USER_PASSKEY_NOTIFICATION;
-		mask |= consts::event_mask::KEYPRESS_NOTIFICATION;
-		mask |= consts::event_mask::REMOTE_HOST_SUPPORTED_FEATURES_NOTIFICATION;
-		mask |= consts::event_mask::LE_META;
+		let mut mask: u64 = 0;
+		mask |= consts::event::masks::COMMAND_COMPLETE;
+		mask |= consts::event::masks::COMMAND_STATUS;
+		mask |= consts::event::masks::INQUIRY_COMPLETE;
+		mask |= consts::event::masks::INQUIRY_RESULT;
+		mask |= consts::event::masks::CONNECTION_COMPLETE;
+		mask |= consts::event::masks::CONNECTION_REQUEST;
+		mask |= consts::event::masks::DISCONNECTION_COMPLETE;
+		mask |= consts::event::masks::AUTHENTICATION_COMPLETE;
+		mask |= consts::event::masks::REMOTE_NAME_REQUEST_COMPLETE;
+		mask |= consts::event::masks::ENCRYPTION_CHANGE;
+		mask |= consts::event::masks::CHANGE_CONNECTION_LINK_KEY_COMPLETE;
+		mask |= consts::event::masks::MASTER_LINK_KEY_COMPLETE;
+		mask |= consts::event::masks::READ_REMOTE_SUPPORTED_FEATURES_COMPLETE;
+		mask |= consts::event::masks::READ_REMOTE_VERSION_INFORMATION_COMPLETE;
+		mask |= consts::event::masks::QOS_SETUP_COMPLETE;
+		mask |= consts::event::masks::HARDWARE_ERROR;
+		mask |= consts::event::masks::FLUSH_OCCURRED;
+		mask |= consts::event::masks::ROLE_CHANGE;
+		mask |= consts::event::masks::MODE_CHANGE;
+		mask |= consts::event::masks::RETURN_LINK_KEYS;
+		mask |= consts::event::masks::PIN_CODE_REQUEST;
+		mask |= consts::event::masks::LINK_KEY_REQUEST;
+		mask |= consts::event::masks::LINK_KEY_NOTIFICATION;
+		mask |= consts::event::masks::LOOPBACK_COMMAND;
+		mask |= consts::event::masks::DATA_BUFFER_OVERFLOW;
+		mask |= consts::event::masks::MAX_SLOTS_CHANGE;
+		mask |= consts::event::masks::READ_CLOCK_OFFSET_COMPLETE;
+		mask |= consts::event::masks::CONNECTION_PACKET_TYPE_CHANGED;
+		mask |= consts::event::masks::QOS_VIOLATION;
+		mask |= consts::event::masks::PAGE_SCAN_MODE_CHANGE;
+		mask |= consts::event::masks::PAGE_SCAN_REPETITION_MODE_CHANGE;
+		mask |= consts::event::masks::FLOW_SPECIFICATION_COMPLETE;
+		mask |= consts::event::masks::INQUIRY_RESULT_WITH_RSSI;
+		mask |= consts::event::masks::READ_REMOTE_EXTENDED_FEATURES_COMPLETE;
+		mask |= consts::event::masks::SYNCHRONOUS_CONNECTION_COMPLETE;
+		mask |= consts::event::masks::SYNCHRONOUS_CONNECTION_CHANGED;
+		mask |= consts::event::masks::SNIFF_SUBRATING;
+		mask |= consts::event::masks::EXTENDED_INQUIRY_RESULT;
+		mask |= consts::event::masks::ENCRYPTION_KEY_REFRESH_COMPLETE;
+		mask |= consts::event::masks::IO_CAPABILITY_REQUEST;
+		mask |= consts::event::masks::IO_CAPABILITY_REQUEST_REPLY;
+		mask |= consts::event::masks::USER_CONFIRMATION_REQUEST;
+		mask |= consts::event::masks::USER_PASSKEY_REQUEST;
+		mask |= consts::event::masks::REMOTE_OOB_DATA_REQUEST;
+		mask |= consts::event::masks::SIMPLE_PAIRING_COMPLETE;
+		mask |= consts::event::masks::LINK_SUPERVISION_TIMEOUT_CHANGED;
+		mask |= consts::event::masks::ENHANCED_FLUSH_COMPLETE;
+		mask |= consts::event::masks::USER_PASSKEY_NOTIFICATION;
+		mask |= consts::event::masks::KEYPRESS_NOTIFICATION;
+		mask |= consts::event::masks::REMOTE_HOST_SUPPORTED_FEATURES_NOTIFICATION;
+		mask |= consts::event::masks::LE_META;
 		EventMask(mask)
 	}
 }
@@ -101,8 +103,11 @@ pub struct EventMaskBuilder {
 
 impl EventMaskBuilder {
 	pub fn new() -> EventMaskBuilder {
+		let mut mask: u64 = 0;
+		mask |= consts::event::masks::COMMAND_COMPLETE;
+		mask |= consts::event::masks::COMMAND_STATUS;
 		EventMaskBuilder {
-			mask: 0x0000000000006000,
+			mask: mask,
 		}
 	}
 	pub fn known(mut self) -> EventMaskBuilder {
@@ -201,7 +206,7 @@ impl Into<u8> for InquiryMode {
 macro_rules! le_event_mask_builder_method {
 	( $method_name:ident => $const_name:ident ) => {
 		pub fn $method_name (mut self) -> LeEventMaskBuilder {
-			self.mask |= consts::le_event_mask::$const_name;
+			self.mask |= consts::event::masks::le_subevent::$const_name;
 			self
 		}
 	}
@@ -218,11 +223,11 @@ impl LeEventMask {
 	}
 	pub fn known() -> LeEventMask {
 		let mut mask: u64 = 0;
-		mask |= consts::le_event_mask::CONNECTION_COMPLETE;
-		mask |= consts::le_event_mask::ADVERTISING_REPORT;
-		mask |= consts::le_event_mask::CONNECTION_UPDATE_COMPLETE;
-		mask |= consts::le_event_mask::READ_REMOTE_USED_FEATURES_COMPLETE;
-		mask |= consts::le_event_mask::LONG_TERM_KEY_REQUEST;
+		mask |= consts::event::masks::le_subevent::CONNECTION_COMPLETE;
+		mask |= consts::event::masks::le_subevent::ADVERTISING_REPORT;
+		mask |= consts::event::masks::le_subevent::CONNECTION_UPDATE_COMPLETE;
+		mask |= consts::event::masks::le_subevent::READ_REMOTE_USED_FEATURES_COMPLETE;
+		mask |= consts::event::masks::le_subevent::LONG_TERM_KEY_REQUEST;
 		LeEventMask(mask)
 	}
 }
