@@ -11,6 +11,12 @@ impl BdAddr {
 }
 
 
+impl Into<[u8; 6]> for BdAddr {
+	fn into(self) -> [u8; 6] {
+		self.0
+	}
+}
+
 impl From<[u8; 6]> for BdAddr {
 	fn from(value: [u8; 6]) -> BdAddr {
 		BdAddr(value)
@@ -35,3 +41,10 @@ impl std::ops::Deref for BdAddr {
 		&self.0
 	}
 }
+
+
+// impl From<bool> for u8 {
+// 	fn from(value: bool) -> u8 {
+// 		value as u8
+// 	}
+// }

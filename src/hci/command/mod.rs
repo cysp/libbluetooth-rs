@@ -12,6 +12,8 @@ macro_rules! define_command {
 
 		impl Into<Vec<u8>> for $command_name {
 			fn into(self) -> Vec<u8> {
+				#[allow(unused_imports)] use $crate::types::*;
+				#[allow(unused_imports)] use $crate::hci::types::*;
 				use $crate::hci::command::CommandBuilder;
 
 				let b = CommandBuilder::new($command_group::$command_name)
@@ -27,6 +29,8 @@ macro_rules! define_command {
 
 		impl Into<Vec<u8>> for $command_name {
 			fn into(self) -> Vec<u8> {
+				#[allow(unused_imports)] use $crate::types::*;
+				#[allow(unused_imports)] use $crate::hci::types::*;
 				use $crate::hci::command::{CommandBuilder, CommandBuilding};
 
 				let b = CommandBuilder::new($command_group::$command_name)
@@ -43,6 +47,8 @@ macro_rules! define_command {
 
 		impl Into<Vec<u8>> for $command_name {
 			fn into(self) -> Vec<u8> {
+				#[allow(unused_imports)] use $crate::types::*;
+				#[allow(unused_imports)] use $crate::hci::types::*;
 				use $crate::hci::command::{CommandBuilder, CommandBuilding};
 
 				$(
@@ -157,8 +163,22 @@ impl CommandBuilding<u64> for CommandBuilder {
 	}
 }
 
+impl CommandBuilding<[u8; 6]> for CommandBuilder {
+	fn parameter(mut self, v: [u8; 6]) -> CommandBuilder {
+		self.parameter_data.extend(v.iter().cloned());
+		self
+	}
+}
+
 impl CommandBuilding<[u8; 8]> for CommandBuilder {
 	fn parameter(mut self, v: [u8; 8]) -> CommandBuilder {
+		self.parameter_data.extend(v.iter().cloned());
+		self
+	}
+}
+
+impl CommandBuilding<[u8; 31]> for CommandBuilder {
+	fn parameter(mut self, v: [u8; 31]) -> CommandBuilder {
 		self.parameter_data.extend(v.iter().cloned());
 		self
 	}
